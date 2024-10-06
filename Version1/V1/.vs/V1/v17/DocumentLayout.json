@@ -1,33 +1,33 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\Users\\u4uza\\Downloads\\SO\\Proyecto_SO\\Version1\\V1\\",
+  "WorkspaceRootPath": "C:\\Users\\u4uza\\Downloads\\SO\\Project\\Version1\\V1\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{FB6F660A-7432-4BBD-92EA-3EE6E0D7CBE8}|V1.csproj|c:\\users\\u4uza\\downloads\\so\\proyecto_so\\version1\\v1\\registro.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "AbsoluteMoniker": "D:0:0:{FB6F660A-7432-4BBD-92EA-3EE6E0D7CBE8}|V1.csproj|c:\\users\\u4uza\\downloads\\so\\project\\version1\\v1\\registro.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
       "RelativeMoniker": "D:0:0:{FB6F660A-7432-4BBD-92EA-3EE6E0D7CBE8}|V1.csproj|solutionrelative:registro.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{FB6F660A-7432-4BBD-92EA-3EE6E0D7CBE8}|V1.csproj|C:\\Users\\u4uza\\Downloads\\SO\\Proyecto_SO\\Version1\\V1\\principal.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
-      "RelativeMoniker": "D:0:0:{FB6F660A-7432-4BBD-92EA-3EE6E0D7CBE8}|V1.csproj|solutionrelative:principal.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{FB6F660A-7432-4BBD-92EA-3EE6E0D7CBE8}|V1.csproj|C:\\Users\\u4uza\\Downloads\\SO\\Proyecto_SO\\Version1\\V1\\registro.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{FB6F660A-7432-4BBD-92EA-3EE6E0D7CBE8}|V1.csproj|C:\\Users\\u4uza\\Downloads\\SO\\Project\\Version1\\V1\\registro.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{FB6F660A-7432-4BBD-92EA-3EE6E0D7CBE8}|V1.csproj|solutionrelative:registro.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{FB6F660A-7432-4BBD-92EA-3EE6E0D7CBE8}|V1.csproj|C:\\Users\\u4uza\\Downloads\\SO\\Proyecto_SO\\Version1\\V1\\principal.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{FB6F660A-7432-4BBD-92EA-3EE6E0D7CBE8}|V1.csproj|C:\\Users\\u4uza\\Downloads\\SO\\Project\\Version1\\V1\\principal.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{FB6F660A-7432-4BBD-92EA-3EE6E0D7CBE8}|V1.csproj|solutionrelative:principal.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{FB6F660A-7432-4BBD-92EA-3EE6E0D7CBE8}|V1.csproj|C:\\Users\\u4uza\\Downloads\\SO\\Project\\Version1\\V1\\principal.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{FB6F660A-7432-4BBD-92EA-3EE6E0D7CBE8}|V1.csproj|solutionrelative:principal.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{FB6F660A-7432-4BBD-92EA-3EE6E0D7CBE8}|V1.csproj|C:\\Users\\u4uza\\Downloads\\SO\\Proyecto_SO\\Version1\\V1\\login.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{FB6F660A-7432-4BBD-92EA-3EE6E0D7CBE8}|V1.csproj|C:\\Users\\u4uza\\Downloads\\SO\\Project\\Version1\\V1\\login.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{FB6F660A-7432-4BBD-92EA-3EE6E0D7CBE8}|V1.csproj|solutionrelative:login.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{FB6F660A-7432-4BBD-92EA-3EE6E0D7CBE8}|V1.csproj|C:\\Users\\u4uza\\Downloads\\SO\\Proyecto_SO\\Version1\\V1\\login.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "AbsoluteMoniker": "D:0:0:{FB6F660A-7432-4BBD-92EA-3EE6E0D7CBE8}|V1.csproj|C:\\Users\\u4uza\\Downloads\\SO\\Project\\Version1\\V1\\login.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
       "RelativeMoniker": "D:0:0:{FB6F660A-7432-4BBD-92EA-3EE6E0D7CBE8}|V1.csproj|solutionrelative:login.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{FB6F660A-7432-4BBD-92EA-3EE6E0D7CBE8}|V1.csproj|C:\\Users\\u4uza\\Downloads\\SO\\Proyecto_SO\\Version1\\V1\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{FB6F660A-7432-4BBD-92EA-3EE6E0D7CBE8}|V1.csproj|C:\\Users\\u4uza\\Downloads\\SO\\Project\\Version1\\V1\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{FB6F660A-7432-4BBD-92EA-3EE6E0D7CBE8}|V1.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
@@ -38,44 +38,58 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 5,
+          "SelectedChildIndex": 8,
           "Children": [
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{eefa5220-e298-11d0-8f78-00a0c9110057}"
             },
             {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "Principal.cs",
-              "DocumentMoniker": "C:\\Users\\u4uza\\Downloads\\SO\\Proyecto_SO\\Version1\\V1\\Principal.cs",
-              "RelativeDocumentMoniker": "Principal.cs",
-              "ToolTip": "C:\\Users\\u4uza\\Downloads\\SO\\Proyecto_SO\\Version1\\V1\\Principal.cs",
-              "RelativeToolTip": "Principal.cs",
-              "ViewState": "AgIAAE4AAAAAAAAAAAAtwGsAAAAZAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-10-06T14:48:30.496Z"
+              "$type": "Bookmark",
+              "Name": "ST:129:0:{75188d03-9892-4ae2-abf1-207126247ce5}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{75188d03-9892-4ae2-abf1-207126247ce5}"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "Principal.cs [Dise\u00F1o]",
-              "DocumentMoniker": "C:\\Users\\u4uza\\Downloads\\SO\\Proyecto_SO\\Version1\\V1\\Principal.cs",
+              "DocumentIndex": 3,
+              "Title": "Principal.cs",
+              "DocumentMoniker": "C:\\Users\\u4uza\\Downloads\\SO\\Project\\Version1\\V1\\Principal.cs",
               "RelativeDocumentMoniker": "Principal.cs",
-              "ToolTip": "C:\\Users\\lucia\\Documents\\Universidad\\3A\\SO\\Version1\\V1\\Principal.cs [Dise\u00F1o]",
-              "RelativeToolTip": "..\\..\\..\\..\\..\\..\\lucia\\Documents\\Universidad\\3A\\SO\\Version1\\V1\\Principal.cs [Dise\u00F1o]",
+              "ToolTip": "C:\\Users\\u4uza\\Downloads\\SO\\Project\\Version1\\V1\\Principal.cs",
+              "RelativeToolTip": "Principal.cs",
+              "ViewState": "AgIAAE4AAAAAAAAAAAAtwGsAAAAZAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-10-06T14:47:52.753Z"
+              "WhenOpened": "2024-10-06T14:48:30.496Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 2,
+              "Title": "Principal.cs [Design]",
+              "DocumentMoniker": "C:\\Users\\u4uza\\Downloads\\SO\\Project\\Version1\\V1\\Principal.cs",
+              "RelativeDocumentMoniker": "Principal.cs",
+              "ToolTip": "C:\\Users\\u4uza\\Downloads\\SO\\Project\\Version1\\V1\\Principal.cs [Design]",
+              "RelativeToolTip": "Principal.cs [Design]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-10-06T14:47:52.753Z",
+              "EditorCaption": " [Design]"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
               "Title": "Registro.cs",
-              "DocumentMoniker": "C:\\Users\\u4uza\\Downloads\\SO\\Proyecto_SO\\Version1\\V1\\Registro.cs",
+              "DocumentMoniker": "C:\\Users\\u4uza\\Downloads\\SO\\Project\\Version1\\V1\\Registro.cs",
               "RelativeDocumentMoniker": "Registro.cs",
-              "ToolTip": "C:\\Users\\u4uza\\Downloads\\SO\\Proyecto_SO\\Version1\\V1\\Registro.cs",
+              "ToolTip": "C:\\Users\\u4uza\\Downloads\\SO\\Project\\Version1\\V1\\Registro.cs",
               "RelativeToolTip": "Registro.cs",
-              "ViewState": "AgIAAFEAAAAAAAAAAAAtwGAAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAD0AAAAAAAAAAAAvwGAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-10-05T18:10:55.989Z",
               "EditorCaption": ""
@@ -84,9 +98,9 @@
               "$type": "Document",
               "DocumentIndex": 4,
               "Title": "LogIn.cs",
-              "DocumentMoniker": "C:\\Users\\u4uza\\Downloads\\SO\\Proyecto_SO\\Version1\\V1\\LogIn.cs",
+              "DocumentMoniker": "C:\\Users\\u4uza\\Downloads\\SO\\Project\\Version1\\V1\\LogIn.cs",
               "RelativeDocumentMoniker": "LogIn.cs",
-              "ToolTip": "C:\\Users\\u4uza\\Downloads\\SO\\Proyecto_SO\\Version1\\V1\\LogIn.cs",
+              "ToolTip": "C:\\Users\\u4uza\\Downloads\\SO\\Project\\Version1\\V1\\LogIn.cs",
               "RelativeToolTip": "LogIn.cs",
               "ViewState": "AgIAADsAAAAAAAAAAAAawDUAAAARAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
@@ -96,9 +110,9 @@
               "$type": "Document",
               "DocumentIndex": 0,
               "Title": "Registro.cs [Design]",
-              "DocumentMoniker": "C:\\Users\\u4uza\\Downloads\\SO\\Proyecto_SO\\Version1\\V1\\Registro.cs",
+              "DocumentMoniker": "C:\\Users\\u4uza\\Downloads\\SO\\Project\\Version1\\V1\\Registro.cs",
               "RelativeDocumentMoniker": "Registro.cs",
-              "ToolTip": "C:\\Users\\u4uza\\Downloads\\SO\\Proyecto_SO\\Version1\\V1\\Registro.cs [Design]",
+              "ToolTip": "C:\\Users\\u4uza\\Downloads\\SO\\Project\\Version1\\V1\\Registro.cs [Design]",
               "RelativeToolTip": "Registro.cs [Design]",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-10-05T18:02:19.491Z",
@@ -108,7 +122,7 @@
               "$type": "Document",
               "DocumentIndex": 5,
               "Title": "LogIn.cs [Dise\u00F1o]",
-              "DocumentMoniker": "C:\\Users\\u4uza\\Downloads\\SO\\Proyecto_SO\\Version1\\V1\\LogIn.cs",
+              "DocumentMoniker": "C:\\Users\\u4uza\\Downloads\\SO\\Project\\Version1\\V1\\LogIn.cs",
               "RelativeDocumentMoniker": "LogIn.cs",
               "ToolTip": "C:\\Users\\lucia\\Documents\\Universidad\\3A\\SO\\Version1\\V1\\LogIn.cs [Dise\u00F1o]",
               "RelativeToolTip": "..\\..\\..\\..\\..\\..\\lucia\\Documents\\Universidad\\3A\\SO\\Version1\\V1\\LogIn.cs [Dise\u00F1o]",
@@ -119,9 +133,9 @@
               "$type": "Document",
               "DocumentIndex": 6,
               "Title": "Program.cs",
-              "DocumentMoniker": "C:\\Users\\u4uza\\Downloads\\SO\\Proyecto_SO\\Version1\\V1\\Program.cs",
+              "DocumentMoniker": "C:\\Users\\u4uza\\Downloads\\SO\\Project\\Version1\\V1\\Program.cs",
               "RelativeDocumentMoniker": "Program.cs",
-              "ToolTip": "C:\\Users\\u4uza\\Downloads\\SO\\Proyecto_SO\\Version1\\V1\\Program.cs",
+              "ToolTip": "C:\\Users\\u4uza\\Downloads\\SO\\Project\\Version1\\V1\\Program.cs",
               "RelativeToolTip": "Program.cs",
               "ViewState": "AgIAABYAAAAAAAAAAAAAABQAAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
