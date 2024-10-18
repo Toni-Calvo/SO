@@ -19,6 +19,12 @@ public class loginRegisterMenus : MonoBehaviour
     private TcpClient client;
     IPEndPoint endpoint;
 
+    public void Start()
+    {
+        if (GlobalVariables.registeredUsername != null)
+            user.text = GlobalVariables.registeredUsername;
+    }
+
     public void quitGame()
     {
         Application.Quit();
@@ -26,6 +32,7 @@ public class loginRegisterMenus : MonoBehaviour
 
     public void moveToRegister()
     {
+        GlobalVariables.registeredUsername = null;
         SceneManager.LoadSceneAsync("RegisterMenu");
     }
 
@@ -41,9 +48,11 @@ public class loginRegisterMenus : MonoBehaviour
             Debug.Log($"Registered: {username}, {password}, {email}, {birthdate}.");
             string request = $"3/{username}/{password}/{email}/{birthdate}";
             string response = SendRequest(request);
+            Debug.Log(response);
             if (response == "Registro")
             {
-                // Registro
+                GlobalVariables.registeredUsername = username;
+                SceneManager.LoadSceneAsync("LoginMenu");
             }
             else if (response == "Usuario existente")
             {
@@ -52,6 +61,10 @@ public class loginRegisterMenus : MonoBehaviour
             else if (response == "Correo existente")
             {
                 errorBox.text = "Mail already used.";
+            }
+            else
+            {
+                errorBox.text = "Incorrect date.";
             }
         }
         else
@@ -68,9 +81,10 @@ public class loginRegisterMenus : MonoBehaviour
             Debug.Log($"Logged: {username}, {password}.");
             string request = $"1/{username}/{password}";
             string response = SendRequest(request);
+            Debug.Log(response);
             if (response == "Login")
             {
-                // Logear
+                SceneManager.LoadSceneAsync("MainMenu");
             }
             else
             {
