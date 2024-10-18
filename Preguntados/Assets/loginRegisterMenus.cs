@@ -12,6 +12,7 @@ using UnityEngine.SceneManagement;
 public class loginRegisterMenus : MonoBehaviour
 {
     public TMP_InputField user, mail, passwrd, date;
+    public TMP_Text errorBox;
     string username, password, email, birthdate;
     private const string serverIp = "192.168.56.102"; // IP del servidor
     private const int serverPort = 8080; // Puerto del servidor
@@ -40,11 +41,23 @@ public class loginRegisterMenus : MonoBehaviour
             Debug.Log($"Registered: {username}, {password}, {email}, {birthdate}.");
             string request = $"3/{username}/{password}/{email}/{birthdate}";
             string response = SendRequest(request);
+            if (response == "Registro")
+            {
+                // Registro
+            }
+            else if (response == "Usuario existente")
+            {
+                errorBox.text = "Username already taken.";
+            }
+            else if (response == "Correo existente")
+            {
+                errorBox.text = "Mail already used.";
+            }
         }
         else
         {
             Debug.Log("Register Error");
-            // Error
+            errorBox.text = "Please fill in the blanks!";
         }
     }
 
@@ -61,13 +74,14 @@ public class loginRegisterMenus : MonoBehaviour
             }
             else
             {
-                // Mensaje de error
+                errorBox.text = "Username or Password incorrect.";
+                passwrd.text = "";
             }
         }
         else
         {
             Debug.Log("Login Error");
-            // Error
+            errorBox.text = "Please fill in the blanks!";
         }
     }
 
@@ -96,7 +110,8 @@ public class loginRegisterMenus : MonoBehaviour
         }
         catch (Exception ex)
         {
-            return $"Error: {ex.Message}";
+            errorBox.text = "Unexpected error. Please try again.";
+            return $"Error: {ex}.";
         }
     }
 
@@ -104,16 +119,22 @@ public class loginRegisterMenus : MonoBehaviour
     {
         if (fromLogin)
         {
-            if ((user.text == null) || (passwrd.text == null))
+            if ((user.text == "") || (passwrd.text == ""))
                 return false;
 
+            username = user.text;
+            password = passwrd.text;
             return true;
         }
         else
         {
-            if ((user.text == null || (passwrd.text == null) || (mail.text == null) || (date.text == null)))
+            if ((user.text == "" || (passwrd.text == "") || (mail.text == "") || (date.text == "")))
                 return false;
 
+            username = user.text;
+            password = passwrd.text;
+            email = mail.text;
+            birthdate = date.text;
             return true;
         }
     }
