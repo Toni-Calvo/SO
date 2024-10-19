@@ -6,6 +6,7 @@ using System.Net.Sockets;
 using System.Text;
 using UnityEditor.PackageManager;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class inviteMenu : MonoBehaviour
 {
@@ -19,6 +20,14 @@ public class inviteMenu : MonoBehaviour
         string request = $"7/";
         string response = SendRequest(request);
         Debug.Log(response);
+        
+        List<string> users = new List<string>(response.Split("/"));
+        for (int i = 1; i < users.Count; i++)
+        {
+            continue;
+        }
+
+
     }
 
     public string SendRequest(string request)
