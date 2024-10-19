@@ -72,19 +72,6 @@ int dime_si_usuario_y_contra_son_correctas(const char *nombre_usuario, const cha
 }
 
 
-
-int anadir_usario_a_la_base_de_datos(const char *username, const char *contrasena, const char *correo, const char *fecha, MYSQL *conn) {
-    char query[512];
-	int ID = getNewID(conn);
-    sprintf(query, "INSERT INTO jugador (ID, Username, Contrasenya, Correo, FechaDeNacimiento) VALUES ('%d', '%s', '%s', '%s', '%s')", ID, username, contrasena, correo, fecha);
-    if (mysql_query(conn, query)) {
-        fprintf(stderr, "INSERT failed. Error: %s\n", mysql_error(conn));
-        return 0; // Error al insertar
-    }
-    return 1; // Inserción exitosa
-}
-
-
 int getNewID(MYSQL *conn) {
 	char query[256];
 	sprintf(query, "SELECT ID FROM jugador ORDER BY ID DESC LIMIT 1");
@@ -101,6 +88,18 @@ int getNewID(MYSQL *conn) {
 	int count = atoi(row[0]);
 	mysql_free_result(res);
 	return count + 1;
+}
+
+
+int anadir_usario_a_la_base_de_datos(const char *username, const char *contrasena, const char *correo, const char *fecha, MYSQL *conn) {
+    char query[512];
+	int ID = getNewID(conn);
+    sprintf(query, "INSERT INTO jugador (ID, Username, Contrasenya, Correo, FechaDeNacimiento) VALUES ('%d', '%s', '%s', '%s', '%s')", ID, username, contrasena, correo, fecha);
+    if (mysql_query(conn, query)) {
+        fprintf(stderr, "INSERT failed. Error: %s\n", mysql_error(conn));
+        return 0; // Error al insertar
+    }
+    return 1; // Inserción exitosa
 }
 
 	
@@ -121,6 +120,7 @@ int dime_si_usuario_existe(const char *username, MYSQL *conn) {
     return num_rows > 0 ? 1 : 0; // 1 si el usuario existe, 0 si no
 }
 
+
 int dime_si_correo_existe(const char *correo, MYSQL *conn) {
     char query[256];
     sprintf(query, "SELECT * FROM jugador WHERE Correo='%s'", correo);
@@ -137,6 +137,7 @@ int dime_si_correo_existe(const char *correo, MYSQL *conn) {
     mysql_free_result(res);
     return num_rows > 0 ? 1 : 0; // 1 si el correo existe, 0 si no
 }
+
 
 int numero_de_partidas_jugadas_en_X_intervalo_de_tiempo(const char *dia1, const char *dia2, MYSQL *conn) {
     char query[256];
@@ -156,6 +157,7 @@ int numero_de_partidas_jugadas_en_X_intervalo_de_tiempo(const char *dia1, const 
     return count;
 }
 
+
 int devuelvaPartidasGanadas(const char *nombre_usuario, MYSQL *conn) {
     char query[256];
     sprintf(query, "SELECT COUNT(*) FROM partidas WHERE ganador IN (SELECT ID FROM jugador WHERE Username='%s')", nombre_usuario);
@@ -174,6 +176,7 @@ int devuelvaPartidasGanadas(const char *nombre_usuario, MYSQL *conn) {
     return count;
 }
 
+
 int devuelvaPartidasPerdidas(const char *nombre_usuario, MYSQL *conn) {
     char query[256];
     sprintf(query, "SELECT COUNT(*) FROM partidas WHERE ganador NOT IN (SELECT ID FROM jugador WHERE Username='%s')", nombre_usuario);
@@ -191,6 +194,7 @@ int devuelvaPartidasPerdidas(const char *nombre_usuario, MYSQL *conn) {
     mysql_free_result(res);
     return count;
 }
+
 
 void dame_todos_los_usuarios(char *todos, MYSQL *conn) {
     sprintf(todos, "");
@@ -215,6 +219,7 @@ void dame_todos_los_usuarios(char *todos, MYSQL *conn) {
     }
 }
 
+
 // Añadir un cliente a la lista
 void add_client(client_info *client) {
 	client_node *new_node = malloc(sizeof(client_node));
@@ -237,6 +242,7 @@ void add_client(client_info *client) {
 	}
 	pthread_mutex_unlock(&clients_mutex);
 }
+
 
 // Eliminar un cliente de la lista
 void remove_client(client_info *client) {
@@ -276,6 +282,7 @@ void print_connected_clients() {
 	pthread_mutex_unlock(&clients_mutex);
 }
 
+
 // Función para manejar comandos del servidor
 void* server_commands(void *arg) {
 	char command[100];
@@ -295,7 +302,6 @@ void* server_commands(void *arg) {
 	}
 	pthread_exit(NULL);
 }
-
 
 
 // Función para manejar la comunicación con el cliente
@@ -428,7 +434,7 @@ void* atenderClientes(void *arg) {
 			if (strlen(lista) > 0) {
 				lista[strlen(lista) - 2] = '\0';
 			}
-			snprintf(respuesta, "7/%s", lista);
+			sprintf(respuesta, "7/%s", lista);
 		}
         else { // Código no reconocido
             strcpy(respuesta, "Código no reconocido");
@@ -446,6 +452,7 @@ void* atenderClientes(void *arg) {
     free(client);
     pthread_exit(NULL);
 }
+
 
 int main() {
     int server_fd, new_socket;
