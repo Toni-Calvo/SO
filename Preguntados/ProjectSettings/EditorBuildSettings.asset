@@ -17,4 +17,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/InviteMenu.unity
     guid: 9d406b6b683803a4ba06dcfe56411279
+  - enabled: 1
+    path: Assets/Scenes/Ruleta.unity
+    guid: 576edd9a243ae6b46b504ac2e52398d6
+  - enabled: 1
+    path: Assets/Scenes/Pregunta.unity
+    guid: ff22b1d9911e4b34d9eb12a5c9ce6c8e
   m_configObjects: {}

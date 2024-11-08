@@ -10,25 +10,25 @@ public class swapElement : MonoBehaviour
     public Selectable firstElement;
     public Button submitBtn;
 
-    // Start is called before the first frame update
     void Start()
     {
+        // Selecciona el primer elemento de la pantalla
         system = EventSystem.current;
         firstElement.Select();
     }
 
-    // Update is called once per frame
     void Update()
     {
+        // Comprueba si se ha pulsado la tecla tabulador para iterar elementos
         if (Input.GetKeyDown(KeyCode.Tab))
         {
             Selectable next = system.currentSelectedGameObject.GetComponent<Selectable>().FindSelectableOnDown();
             if (next != null)
             {
                 next.Select();
-                Debug.Log("Next");
             }
         }
+        // Comprueba si se ha pulsado la tecla enter para enviar el formulario
         else if (Input.GetKeyDown(KeyCode.Return))
         {
             submitBtn.onClick.Invoke();
