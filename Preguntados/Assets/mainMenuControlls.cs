@@ -5,6 +5,7 @@ using System.Threading;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class mainMenuControlls : MonoBehaviour
 {
@@ -12,6 +13,7 @@ public class mainMenuControlls : MonoBehaviour
     public TMP_Text p2;
     public TMP_Text p3;
     public TMP_Text p4;
+    public Button playBtn;
     private float timer;
 
 
@@ -33,7 +35,8 @@ public class mainMenuControlls : MonoBehaviour
         {
             string response = GlobalVariables.SendRequest($"15/{GlobalVariables.currentUsername}"); // Crear sala
             GlobalVariables.idPartida = Convert.ToInt32(response.Split("/")[1]);
-            GlobalVariables.players = new List<string> { GlobalVariables.currentUsername };
+            GlobalVariables.players = new List<string>();
+            GlobalVariables.players.Add(GlobalVariables.currentUsername);
         }
         // Se ha unido a una sala
         else
@@ -47,13 +50,22 @@ public class mainMenuControlls : MonoBehaviour
         timer -= Time.deltaTime;
         // Escucha del servidor
         if (timer <= 0)
+        {
             escuchaServidor();
+            actualizaLabels();
+        }
     }
 
     // Actualiza las personas en sala
     private void actualizaLabels()
     {
         p1.text = $"P1: {GlobalVariables.players[0]}";
+
+        if (GlobalVariables.currentUsername == p1.text)
+            playBtn.interactable = true;
+        else
+            playBtn.interactable = false;
+
         if (GlobalVariables.players.Count > 1)
         {
             p2.text = $"P2: {GlobalVariables.players[1]}";
@@ -82,7 +94,7 @@ public class mainMenuControlls : MonoBehaviour
     {
         if (GlobalVariables.players.Count > 1)
         {
-            string response = GlobalVariables.SendRequest($"10/"); // Iniciar la partida
+            string response = GlobalVariables.SendRequest($"10/{GlobalVariables.idPartida}"); // Iniciar la partida
             if (response == "Game Started")
             {
                 GlobalVariables.loadScores();
@@ -111,7 +123,6 @@ public class mainMenuControlls : MonoBehaviour
         GlobalVariables.players = new List<string>(response.Split("/"));
         GlobalVariables.players.RemoveAt(0);    // Elimina el 9
         GlobalVariables.players.RemoveAt(0);    // Elimina el estado de la partida (0,1)
-        actualizaLabels();
     }
 
     // Desconectar y volver al Login

@@ -68,10 +68,14 @@ public class pregunta : MonoBehaviour
             }
         }
 
+        GlobalVariables.inGame = true;
+
         escuchaServidor();
         // Activa el boton de pregunta para la persona que tenga el turno
         if (GlobalVariables.players[GlobalVariables.turn] == GlobalVariables.currentUsername)
             pregunta_Btn.gameObject.SetActive(true);
+        else
+            pregunta_Btn.gameObject.SetActive(false);
     }
 
     void Update()
@@ -166,15 +170,15 @@ public class pregunta : MonoBehaviour
     // Escribe a los jugadores + sus puntuaciones
     private void setLabels()
     {
-        p1.text = GlobalVariables.players[0] + $"{GlobalVariables.scoreP1}/5";
-        p2.text = GlobalVariables.players[1] + $"{GlobalVariables.scoreP2}/5";
+        p1.text = $"{GlobalVariables.players[0]} {GlobalVariables.scoreP1}/5";
+        p2.text = $"{GlobalVariables.players[1]} {GlobalVariables.scoreP2}/5";
 
         if (GlobalVariables.players.Count > 2)
         {
-            p3.text = GlobalVariables.players[2] + $"{GlobalVariables.scoreP3}/5";
+            p3.text = $"{GlobalVariables.players[2]} {GlobalVariables.scoreP3}/5";
             if (GlobalVariables.players.Count > 3)
             {
-                p4.text = GlobalVariables.players[3] + $"{GlobalVariables.scoreP4}/5";
+                p4.text = $"{GlobalVariables.players[3]} {GlobalVariables.scoreP4}/5";
             }
             else
             {
@@ -201,10 +205,10 @@ public class pregunta : MonoBehaviour
         selectedType = UnityEngine.Random.Range(0, GlobalVariables.cathegories.Count);
         string response = GlobalVariables.SendRequest($"8/{GlobalVariables.cathegories[selectedType]}"); // Solicitar pregunta
         // Guardar pregunta y respuestas
-        GlobalVariables.currentQuestion = response.Split("/")[0];
-        GlobalVariables.currentA1 = response.Split("/")[1];
-        GlobalVariables.currentA2 = response.Split("/")[2];
-        GlobalVariables.currentA3 = response.Split("/")[3];
-        GlobalVariables.currentA4 = response.Split("/")[4];
+        GlobalVariables.currentQuestion = response.Split("/")[1];
+        GlobalVariables.currentA1 = response.Split("/")[2];
+        GlobalVariables.currentA2 = response.Split("/")[3];
+        GlobalVariables.currentA3 = response.Split("/")[4];
+        GlobalVariables.currentA4 = response.Split("/")[5];
     }
 }

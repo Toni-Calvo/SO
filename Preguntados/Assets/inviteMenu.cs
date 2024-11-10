@@ -51,7 +51,7 @@ public class inviteMenu : MonoBehaviour
         if (btn.GetComponentInChildren<Text>().text == GlobalVariables.currentUsername)
             return;
 
-        GlobalVariables.SendRequest("14/"); // Unirse a sala
+        GlobalVariables.SendRequest($"14/{GlobalVariables.currentUsername}/{btn.GetComponentInChildren<Text>().text}"); // Unirse a sala
         GlobalVariables.joinedGame = true;
         SceneManager.LoadSceneAsync("MainMenu");
     }

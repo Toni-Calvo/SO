@@ -614,6 +614,7 @@ int crear_sala(int idPartida, int idUser, char *response, MYSQL *conn) {
         printf("Error: %u %s\n", mysql_errno(conn), mysql_error(conn));
         return -1;
     }
+    strcpy(response, "15/");
     return 0;
 }
 
@@ -648,7 +649,8 @@ int join_sala(char username[username_max_length], char userPartida[username_max_
     char query[sql_query_max_length];
     int id = get_user_id(username, conn);
     int idPartida = find_sala(userPartida, conn);
-    sprintf(query, "UPDATE partidas SET IDJugador%i=%i WHERE IDPartida=%i", id, id, idPartida);
+    int space;
+    sprintf(query, "UPDATE partidas SET IDJugador%i=%i WHERE IDPartida=%i", space, id, idPartida);
     if (mysql_query(conn, query) != 0) {
         printf("Error: %u %s\n", mysql_errno(conn), mysql_error(conn));
         return -1;
