@@ -16,32 +16,32 @@ public class preguntaMenu : MonoBehaviour
     private float timer;
     private int seconds;
     private bool block;
-    private List<int[]> positions;
+    private List<float[]> positions;
     private int pos;
 
     // Asignar a los botones posiciones aleatorias
     private void SetButtonPositions()
     {
         pos = Random.Range(0, 4);
-        R1.transform.position = new Vector3(positions[pos][0] + 1920/2, positions[pos][1] + 1080/2, 0);
+        R1.transform.position = new Vector3(positions[pos][0], positions[pos][1], 0);
         positions.RemoveAt(pos);
         pos = Random.Range(0, 3);
-        R2.transform.position = new Vector3(positions[pos][0] + 1920/2, positions[pos][1] + 1080 / 2, 0);
+        R2.transform.position = new Vector3(positions[pos][0], positions[pos][1], 0);
         positions.RemoveAt(pos);
         pos = Random.Range(0, 2);
-        R3.transform.position = new Vector3(positions[pos][0] + 1920/2, positions[pos][1] + 1080 / 2, 0);
+        R3.transform.position = new Vector3(positions[pos][0], positions[pos][1], 0);
         positions.RemoveAt(pos);
-        R4.transform.position = new Vector3(positions[0][0] + 1920/2, positions[0][1] + 1080 / 2, 0);
+        R4.transform.position = new Vector3(positions[0][0], positions[0][1], 0);
     }
 
     // Cargar las posiciones de los botones
     private void loadButtonPositions()
     {
-        positions = new List<int[]>();
-        positions.Add(new int[] { -450, -51 });
-        positions.Add(new int[] { 450, -51 });
-        positions.Add(new int[] { -450, -350 });
-        positions.Add(new int[] { 450, -350 });
+        positions = new List<float[]>();
+        positions.Add(new float[] { 291.48f, 282.64f });
+        positions.Add(new float[] { 809.52f , 282.64f });
+        positions.Add(new float[] { 291.48f, 110.54f });
+        positions.Add(new float[] { 809.52f, 110.54f });
     }
 
     void Start()
@@ -58,10 +58,10 @@ public class preguntaMenu : MonoBehaviour
 
         // Escribir las preguntas y respuestas
         pregunta.text = GlobalVariables.currentQuestion;
-        R1.GetComponentInChildren<Text>().text = GlobalVariables.currentA1; // R1 es la correcta siempre
-        R2.GetComponentInChildren<Text>().text = GlobalVariables.currentA2;
-        R3.GetComponentInChildren<Text>().text = GlobalVariables.currentA3;
-        R4.GetComponentInChildren<Text>().text = GlobalVariables.currentA4;
+        R1.GetComponentInChildren<TMP_Text>().text = GlobalVariables.currentA1; // R1 es la correcta siempre
+        R2.GetComponentInChildren<TMP_Text>().text = GlobalVariables.currentA2;
+        R3.GetComponentInChildren<TMP_Text>().text = GlobalVariables.currentA3;
+        R4.GetComponentInChildren<TMP_Text>().text = GlobalVariables.currentA4;
     }
 
     void Update()

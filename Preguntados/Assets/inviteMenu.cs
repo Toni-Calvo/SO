@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using TMPro;
 using UnityEditor.PackageManager;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -31,10 +32,9 @@ public class inviteMenu : MonoBehaviour
             userBtn.transform.position = new Vector3(1920/2, 1080/2 + 475 - 75*i, 0);
             userBtn.GetComponent<RectTransform>().sizeDelta = new Vector2(1920, 75);
             userBtn.image.color = new Color32(255, 255, 255, 0);
-            userBtn.GetComponentInChildren<Text>().text = users[i];
-            userBtn.GetComponentInChildren<Text>().fontSize = 32;
-            userBtn.GetComponentInChildren<Text>().color = new Color32(255, 255, 255, 255);
-            userBtn.GetComponentInChildren<Text>().fontStyle = FontStyle.Bold;
+            userBtn.GetComponentInChildren<TMP_Text>().text = users[i];
+            userBtn.GetComponentInChildren<TMP_Text>().fontSize = 32;
+            userBtn.GetComponentInChildren<TMP_Text>().color = new Color32(255, 255, 255, 255);
             userBtn.onClick.AddListener(() => userBtnClick(userBtn));
         }
     }
@@ -47,11 +47,11 @@ public class inviteMenu : MonoBehaviour
 
     public void userBtnClick(Button btn)
     {
-        Debug.Log($"Clicked {btn.GetComponentInChildren<Text>().text}");
-        if (btn.GetComponentInChildren<Text>().text == GlobalVariables.currentUsername)
+        Debug.Log($"Clicked {btn.GetComponentInChildren<TMP_Text>().text}");
+        if (btn.GetComponentInChildren<TMP_Text>().text == GlobalVariables.currentUsername)
             return;
 
-        GlobalVariables.SendRequest($"14/{GlobalVariables.currentUsername}/{btn.GetComponentInChildren<Text>().text}"); // Unirse a sala
+        GlobalVariables.SendRequest($"14/{GlobalVariables.currentUsername}/{btn.GetComponentInChildren<TMP_Text>().text}"); // Unirse a sala
         GlobalVariables.joinedGame = true;
         SceneManager.LoadSceneAsync("MainMenu");
     }

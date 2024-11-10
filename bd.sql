@@ -5,6 +5,11 @@ DROP TABLE IF EXISTS partidas;
 DROP TABLE IF EXISTS RelacionIDsPartidas;
 DROP TABLE IF EXISTS jugador;
 DROP TABLE IF EXISTS conectados;
+DROP TABLE IF EXISTS PreguntasHistoria;
+DROP TABLE IF EXISTS PreguntasArte;
+DROP TABLE IF EXISTS PreguntasCiencia;
+DROP TABLE IF EXISTS PreguntasEntretenimiento;
+DROP TABLE IF EXISTS PreguntasGeografia;
 
 CREATE TABLE partidas (IDPartida int(10),IDJugador1 int(10),IDJugador2 int(10) ,IDJugador3 int(10),IDJugador4 int (10),FechayHoraFinal datetime not NULL ,Duracion int(3),ganador int(10), p1 int(3), p2 int(3), p3 int(3), p4 int(3));
 

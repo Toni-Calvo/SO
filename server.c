@@ -271,15 +271,15 @@ int get_last_id(MYSQL *conn) {
     sprintf(query, "SELECT MAX(ID) FROM jugador");
     if (mysql_query(conn, query)) {
         fprintf(stderr, "%s\n", mysql_error(conn));
-        return -1;
+        return 1;
     }
     res = mysql_store_result(conn);
     if (res == NULL) {
-        return -1;           
+        return 1;           
     }
     row = mysql_fetch_row(res);
     if (row == NULL) {
-        return -1;
+        return 1;
     }
     mysql_free_result(res);
     return atoi(row[0]);            // return the max ID
@@ -292,15 +292,15 @@ int get_last_id_partida(MYSQL *conn) {
     sprintf(query, "SELECT MAX(IDPartida) FROM partidas");
     if (mysql_query(conn, query)) {
         fprintf(stderr, "%s\n", mysql_error(conn));
-        return -1;
+        return 1;
     }
     res = mysql_store_result(conn);
     if (res == NULL) {
-        return -1;           
+        return 1;           
     }
     row = mysql_fetch_row(res);
     if (row == NULL) {
-        return -1;
+        return 1;
     }
     mysql_free_result(res);
     return atoi(row[0]);            // return the max ID

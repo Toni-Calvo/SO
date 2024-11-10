@@ -17,6 +17,7 @@ public class pregunta : MonoBehaviour
     public TMP_Text p3;
     public TMP_Text p4;
     public Button pregunta_Btn;
+    public Camera cam;
     private float timer;
     private float refreshTimer;
     private float contLabel;
@@ -25,8 +26,23 @@ public class pregunta : MonoBehaviour
 
     void Start()
     {
+        // BORRAR
+        GlobalVariables.loadCathegories();
+        GlobalVariables.players = new List<string> { "player1", "player2", "player3", "player4" };
+        GlobalVariables.currentUsername = "player1";
+        GlobalVariables.inGame = false;
+        GlobalVariables.turn = 0;
+        GlobalVariables.currentQuestion = "¿Cuál es la capital de España?";
+        GlobalVariables.currentA1 = "Madrid";
+        GlobalVariables.currentA2 = "Barcelona";
+        GlobalVariables.currentA3 = "Sevilla";
+        GlobalVariables.currentA4 = "Valencia";
+        // PARAR
+
         // Escribe a los jugadores en la sala
-        setLabels();
+        //setLabels();
+
+        cam.backgroundColor = new Color(0.188f, 0.2961f, 0.47f, 0f);
 
         // Inicializa los timers
         timer = 5;  // ruleta
@@ -70,7 +86,8 @@ public class pregunta : MonoBehaviour
 
         GlobalVariables.inGame = true;
 
-        escuchaServidor();
+        setLabels();
+        //escuchaServidor();
         // Activa el boton de pregunta para la persona que tenga el turno
         if (GlobalVariables.players[GlobalVariables.turn] == GlobalVariables.currentUsername)
             pregunta_Btn.gameObject.SetActive(true);
@@ -87,8 +104,8 @@ public class pregunta : MonoBehaviour
         else 
         { 
             refreshTimer -= Time.deltaTime;
-            if (refreshTimer < 0)
-                escuchaServidor();
+            //if (refreshTimer < 0)
+                //escuchaServidor();
         }
 
         
@@ -114,7 +131,7 @@ public class pregunta : MonoBehaviour
     private void actualizaScores(string response)
     {
         GlobalVariables.scoreP1 = Convert.ToInt32(response.Split("/")[1]);
-        GlobalVariables.scoreP1 = Convert.ToInt32(response.Split("/")[2]);
+        GlobalVariables.scoreP2 = Convert.ToInt32(response.Split("/")[2]);
         if (GlobalVariables.players.Count > 2)
         {
             GlobalVariables.scoreP3= Convert.ToInt32(response.Split("/")[3]);
@@ -134,37 +151,58 @@ public class pregunta : MonoBehaviour
         // Cambiar a preguntaMenu
         if (timer <= 0)
         {
-            SceneManager.LoadSceneAsync("preguntaMenu");
+            SceneManager.LoadSceneAsync("Pregunta");
         }
         // Fijar el tipo de pregunta
         else if (timer <= 2)
         {
             tipoPregunta.text = GlobalVariables.cathegories[selectedType];
+            cam.backgroundColor = getColor(selectedType);
         }
         // Simular giro de ruleta
-        else if (contLabel >= 0.5)
+        else if (contLabel >= 0.2)
         {
+            contLabel = 0;
             if (tipoPregunta.text == "Historia")
             {
                 tipoPregunta.text = "Geografía";
+                cam.backgroundColor = Color.yellow;
             }
             else if (tipoPregunta.text == "Geografía")
             {
                 tipoPregunta.text = "Ciencia";
+                cam.backgroundColor = Color.green;
             }
             else if (tipoPregunta.text == "Ciencia")
             {
                 tipoPregunta.text = "Arte";
+                cam.backgroundColor = Color.red;
             }
             else if (tipoPregunta.text == "Arte")
             {
                 tipoPregunta.text = "Entretenimiento";
+                cam.backgroundColor = Color.magenta;
             }
-            else if (tipoPregunta.text == "Entretenimiento")
+            else
             {
                 tipoPregunta.text = "Historia";
+                cam.backgroundColor = Color.grey;
             }
         }
+    }
+
+    private Color getColor(int valor)
+    {
+        if (valor == 0)
+            return Color.grey;
+        else if (valor == 1)
+            return Color.yellow;
+        else if (valor == 2)
+            return Color.green;
+        else if (valor == 3)
+            return Color.red;
+        else
+            return Color.magenta;
     }
 
     // Escribe a los jugadores + sus puntuaciones
@@ -199,10 +237,10 @@ public class pregunta : MonoBehaviour
         condition = true;
         // Desactivar boton de pregunta
         pregunta_Btn.gameObject.SetActive(false);
-        tipoPregunta.text = "Historia";
 
         // Escoger tipo de pregunta al azar
         selectedType = UnityEngine.Random.Range(0, GlobalVariables.cathegories.Count);
+        /*
         string response = GlobalVariables.SendRequest($"8/{GlobalVariables.cathegories[selectedType]}"); // Solicitar pregunta
         // Guardar pregunta y respuestas
         GlobalVariables.currentQuestion = response.Split("/")[1];
@@ -210,5 +248,6 @@ public class pregunta : MonoBehaviour
         GlobalVariables.currentA2 = response.Split("/")[3];
         GlobalVariables.currentA3 = response.Split("/")[4];
         GlobalVariables.currentA4 = response.Split("/")[5];
+        */
     }
 }
