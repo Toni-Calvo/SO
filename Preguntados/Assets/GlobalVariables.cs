@@ -50,7 +50,7 @@ public class GlobalVariables : MonoBehaviour
     {
         GlobalVariables.cathegories = new List<string>();
         GlobalVariables.cathegories.Add("Historia");
-        GlobalVariables.cathegories.Add("Geografía");
+        GlobalVariables.cathegories.Add("Geografia");
         GlobalVariables.cathegories.Add("Ciencia");
         GlobalVariables.cathegories.Add("Arte");
         GlobalVariables.cathegories.Add("Entretenimiento");

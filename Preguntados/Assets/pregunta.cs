@@ -30,7 +30,6 @@ public class pregunta : MonoBehaviour
 
         // Inicializa los timers
         timer = 5;  // ruleta
-        refreshTimer = 5; // Escucha del servidor
         contLabel = 0; // ruleta
 
         tipoPregunta.text = "";
@@ -51,22 +50,25 @@ public class pregunta : MonoBehaviour
                 // Sumar score
                 else
                 {
-                    string request = $"13/"; // sumar puntuacion / idPartida / username
-                    GlobalVariables.SendRequest(request); // no espero respuesta
+                    GlobalVariables.SendRequest($"13/{GlobalVariables.idPartida}/{GlobalVariables.turn + 1}"); // sumar puntuacion -> 13/idPartida/username
+                    // no espero respuesta
                     escuchaServidor();
                 }
 
             }
             else
             {
-
                 if (GlobalVariables.players.Count == GlobalVariables.turn + 1)
                     GlobalVariables.turn = 0;
                 else
                     GlobalVariables.turn++;
+
+                GlobalVariables.racha = 0;
+                GlobalVariables.SendRequest($"5/{GlobalVariables.idPartida}/{GlobalVariables.turn}"); // Cambiar turno -> 5/idPartida
             }
         }
 
+        escuchaServidor();
         // Activa el boton de pregunta para la persona que tenga el turno
         if (GlobalVariables.players[GlobalVariables.turn] == GlobalVariables.currentUsername)
             pregunta_Btn.gameObject.SetActive(true);
@@ -92,12 +94,13 @@ public class pregunta : MonoBehaviour
     private void escuchaServidor()
     {
         refreshTimer = 5;
-        string request = $"11/"; // Solicitar quesitos + turno -> turno / nQuesitosPlayer1 / nQuesitosPlayer2 / nQuesitosPlayer3 / nQuesitosPlayer4
-        string response = GlobalVariables.SendRequest(request);
+        
+        string response = GlobalVariables.SendRequest($"11/{GlobalVariables.idPartida}"); // Solicitar puntuaciones + turno -> turno/nQuesitosPlayer1/nQuesitosPlayer2/nQuesitosPlayer3/nQuesitosPlayer4
 
         // Si cambia de turno actualiza los scores
-        if (GlobalVariables.turn == Convert.ToInt32(response.Split("/")[0]))
+        if (GlobalVariables.turn != Convert.ToInt32(response.Split("/")[1]) - 1)
         {
+            GlobalVariables.turn = Convert.ToInt32(response.Split("/")[1]) - 1;
             actualizaScores(response);
             setLabels();
         }
@@ -196,9 +199,7 @@ public class pregunta : MonoBehaviour
 
         // Escoger tipo de pregunta al azar
         selectedType = UnityEngine.Random.Range(0, GlobalVariables.cathegories.Count);
-        // Solicitar pregunta
-        string request = $"8/{GlobalVariables.cathegories[selectedType]}";
-        string response = GlobalVariables.SendRequest(request);
+        string response = GlobalVariables.SendRequest($"8/{GlobalVariables.cathegories[selectedType]}"); // Solicitar pregunta
         // Guardar pregunta y respuestas
         GlobalVariables.currentQuestion = response.Split("/")[0];
         GlobalVariables.currentA1 = response.Split("/")[1];

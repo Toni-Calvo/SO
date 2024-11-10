@@ -50,8 +50,7 @@ public class loginRegisterMenus : MonoBehaviour
         if (setVariables(false))
         {
             Debug.Log($"Registered: {username}, {password}, {email}, {birthdate}.");
-            string request = $"3/{username}/{password}/{email}/{birthdate}"; // Registro
-            string response = GlobalVariables.SendRequest(request);
+            string response = GlobalVariables.SendRequest($"3/{username}/{password}/{email}/{birthdate}"); // Registro
             if (response == "Registro")
             {
                 GlobalVariables.registeredUsername = username;
@@ -83,8 +82,7 @@ public class loginRegisterMenus : MonoBehaviour
         if (setVariables(true))
         {
             Debug.Log($"Logged: {username}, {password}.");
-            string request = $"1/{username}/{password}"; // Login
-            string response = GlobalVariables.SendRequest(request);
+            string response = GlobalVariables.SendRequest($"1/{username}/{password}"); // Login
             Debug.Log(response);
             if (response == "Login")
             {

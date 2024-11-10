@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
@@ -29,7 +30,11 @@ public class mainMenuControlls : MonoBehaviour
 
         // Comprueba si viene del login
         if (!GlobalVariables.joinedGame)
+        {
+            string response = GlobalVariables.SendRequest($"15/{GlobalVariables.currentUsername}"); // Crear sala
+            GlobalVariables.idPartida = Convert.ToInt32(response.Split("/")[1]);
             GlobalVariables.players = new List<string> { GlobalVariables.currentUsername };
+        }
         // Se ha unido a una sala
         else
             escuchaServidor();
@@ -49,19 +54,27 @@ public class mainMenuControlls : MonoBehaviour
     private void actualizaLabels()
     {
         p1.text = $"P1: {GlobalVariables.players[0]}";
-        p2.text = $"P2: {GlobalVariables.players[1]}";
-        if (GlobalVariables.players.Count > 2)
+        if (GlobalVariables.players.Count > 1)
         {
-            p3.text = $"P3: {GlobalVariables.players[2]}";
-            if (GlobalVariables.players.Count > 3)
-                p4.text = $"P4: {GlobalVariables.players[3]}";
+            p2.text = $"P2: {GlobalVariables.players[1]}";
+            if (GlobalVariables.players.Count > 2)
+            {
+                p3.text = $"P3: {GlobalVariables.players[2]}";
+                if (GlobalVariables.players.Count > 3)
+                    p4.text = $"P4: {GlobalVariables.players[3]}";
+            }
         }
     }
 
     // Cambia a la pantalla de invitacion
     public void listConnected()
     {
-        SceneManager.LoadSceneAsync("InviteMenu");
+        escuchaServidor();
+        if (GlobalVariables.players.Count == 1)
+        {
+            GlobalVariables.SendRequest($"12/{GlobalVariables.idPartida}"); // Eliminar sala
+            SceneManager.LoadSceneAsync("InviteMenu");
+        }
     }
 
     // Inicia el juego
@@ -69,8 +82,7 @@ public class mainMenuControlls : MonoBehaviour
     {
         if (GlobalVariables.players.Count > 1)
         {
-            string request = $"10/"; // Iniciar juego
-            string response = GlobalVariables.SendRequest(request);
+            string response = GlobalVariables.SendRequest($"10/"); // Iniciar la partida
             if (response == "Game Started")
             {
                 GlobalVariables.loadScores();
@@ -83,9 +95,11 @@ public class mainMenuControlls : MonoBehaviour
     private void escuchaServidor()
     {
         timer = 5;
-        string request = $"9/"; // Solicitar lista de jugadores en la sala + juego iniciado -> 0: no , 1: si / jugadores
-        string response = GlobalVariables.SendRequest(request);
 
+        Debug.Log("Escuchando servidor");
+        string response = GlobalVariables.SendRequest($"9/{GlobalVariables.players[0]}"); // Solicitar lista de jugadores en la sala + juego iniciado -> 0: no , 1: si / jugadores
+
+        Debug.Log(response);
         // Juego iniciado por el host de la sala (P1)
         if (response.Split("/")[0] == "1")
         {
@@ -95,7 +109,16 @@ public class mainMenuControlls : MonoBehaviour
 
         // Actualiza la lista de jugadores en la sala
         GlobalVariables.players = new List<string>(response.Split("/"));
-        GlobalVariables.players.RemoveAt(0);
+        GlobalVariables.players.RemoveAt(0);    // Elimina el 9
+        GlobalVariables.players.RemoveAt(0);    // Elimina el estado de la partida (0,1)
         actualizaLabels();
+    }
+
+    // Desconectar y volver al Login
+    public void disconnect()
+    {
+        GlobalVariables.SendRequest("0/"); // Desconectar
+        GlobalVariables.joinedGame = false;
+        SceneManager.LoadSceneAsync("LoginMenu");
     }
 }
