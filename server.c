@@ -607,22 +607,13 @@ int get_user_id(char username[username_max_length], MYSQL *conn) {
 }
 
 
-int create_sala(char name[username_max_length], char *response, MYSQL *conn) {
-	printf("Creando sala");
-    MYSQL_RES *res;
-    MYSQL_ROW row;
-    char query[sql_query_max_length];
-    int id = get_last_id_partida(conn) + 1;
-	printf("%i\n", id);
-	int userID = get_user_id(name, conn);
-    pthread_mutex_lock(&mutex);
-    sprintf(query, "INSERT INTO partidas VALUES (%i, %i, NULL, NULL, NULL, '2000-01-01 12:00:00', 0, NULL, 0, 0, 0, 0)", id, userID);
+int crear_sala(int idPartida, int idUser, char *response, MYSQL *conn) {
+	char query[sql_query_max_length];
+    sprintf(query, "INSERT INTO partidas VALUES (%i, %i, NULL, NULL, NULL, '2000-01-01 12:00:00', 0, NULL, 0, 0, 0, 0)", idPartida, idUser);
     if (mysql_query(conn, query) != 0) {
         printf("Error: %u %s\n", mysql_errno(conn), mysql_error(conn));
         return -1;
     }
-    pthread_mutex_unlock(&mutex);
-    sprintf(response, "15/%i", id);
     return 0;
 }
 
@@ -922,8 +913,14 @@ void *attendClients(void *socket) {
             else if (option == 15) {        // Crear sala
                 p = strtok(NULL, "/");
                 strcpy(username, p);
-				printf("user: %s\nResponse: '%s'\n", username, response);
-                create_sala(username, response, conn);
+				printf("User: %s.\nResponse: '%s'\n", username, response);
+                pthread_mutex_lock(&mutex);
+                int idP = get_last_id_partida(conn);
+                int idU = get_user_id(username, conn);
+				printf("User ID: %i, Game ID: %i\n", idU, idP);
+                int i = crear_sala(idP, idU, response, conn);
+                pthread_mutex_unlock(&mutex);
+				printf("Response: %s\n", response);
                 write(sock_conn, response, strlen(response));
             }
    
