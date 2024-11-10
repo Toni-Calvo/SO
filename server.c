@@ -271,41 +271,74 @@ int get_last_id(MYSQL *conn) {
     sprintf(query, "SELECT MAX(ID) FROM jugador");
     if (mysql_query(conn, query)) {
         fprintf(stderr, "%s\n", mysql_error(conn));
-        return 1;
+        return -1;
     }
     res = mysql_store_result(conn);
     if (res == NULL) {
-        return 1;           
+        return -1;           
     }
     row = mysql_fetch_row(res);
     if (row == NULL) {
-        return 1;
+        return -1;
     }
     mysql_free_result(res);
     return atoi(row[0]);            // return the max ID
 }
 
 int get_last_id_partida(MYSQL *conn) {
+	char query[sql_query_max_length];
+	MYSQL_RES *res = NULL;  // Inicializa res como NULL para facilitar la liberación de memoria
+	MYSQL_ROW row;
+	
+	// Construye la consulta
+	sprintf(query, "SELECT MAX(IDPartida) FROM partidas");
+	if (mysql_query(conn, query)) {
+		fprintf(stderr, "Error en la consulta: %s\n", mysql_error(conn));
+		return -1;  // Devuelve un código de error si la consulta falla
+	}
+	// Almacena el resultado de la consulta
+	res = mysql_store_result(conn);
+	if (res == NULL) {
+		fprintf(stderr, "Error al almacenar el resultado: %s\n", mysql_error(conn));
+		return -1;  // Devuelve un código de error si no se pudo almacenar el resultado
+	}
+	// Obtiene la primera fila del resultado
+	row = mysql_fetch_row(res);
+	if (row == NULL || row[0] == NULL) {
+		// Si la fila o el valor en row[0] son NULL, no hay un ID máximo
+		mysql_free_result(res);  // Libera la memoria antes de salir
+		return -1;
+	}
+	// Convierte el valor a entero, una vez que se ha confirmado que row[0] no es NULL
+	int last_id = atoi(row[0]);
+	
+	// Libera el resultado antes de devolver el valor
+	mysql_free_result(res);
+	
+	return last_id;  // Devuelve el ID máximo
+}
+/*int get_last_id_partida(MYSQL *conn) {
     char query[sql_query_max_length];
     MYSQL_RES *res;
     MYSQL_ROW row;
     sprintf(query, "SELECT MAX(IDPartida) FROM partidas");
     if (mysql_query(conn, query)) {
         fprintf(stderr, "%s\n", mysql_error(conn));
-        return 1;
+        return -1;
     }
     res = mysql_store_result(conn);
     if (res == NULL) {
-        return 1;           
+        return -1;           
     }
     row = mysql_fetch_row(res);
     if (row == NULL) {
-        return 1;
+        return -1;
     }
     mysql_free_result(res);
     return atoi(row[0]);            // return the max ID
 }
 
+*/
 
 /* 5. This function will add a new user to the database (if the user does not exits already).
 Will return 0 if the user is added, -1 if the user is not added. */
@@ -451,32 +484,46 @@ int info_sala(char username[username_max_length], char *result, MYSQL *conn) {
     MYSQL_ROW row;
     char query[sql_query_max_length];
     strcpy(result, "9/");    // empty the result (initialize)
-	strcat(result, username);
-	strcat(result, "/");
 
     pthread_mutex_lock(&mutex);
     sprintf(query, "SELECT duracion FROM partidas WHERE (IDJugador1 IN (SELECT ID FROM jugador WHERE username='%s'))", username);    // 0: partida no iniciada, 1: partida en curso
-    if (mysql_query (conn, query) != 0) {
+    if (mysql_query (conn, query)) {
         printf ("Error: %u %s\n", mysql_errno(conn), mysql_error(conn));
-        exit(1);
+        return -1;
     }
     res = mysql_store_result(conn);
+	if (res == NULL) {
+		return -1;
+	}
     row = mysql_fetch_row(res);
+	if (row == NULL || row[0] == NULL) {
+		mysql_free_result(res);
+		return -1;
+	}
     if (strcmp(row[0], "0") == 0) {
         strcat(result, "0/");
     }
     else {
         strcat(result, "1/");
     }
+	strcat(result, username);
+	strcat(result, "/");
 
     for (int i = 2; i < 5; i++) {
         sprintf(query, "SELECT username FROM jugador WHERE (ID IN (SELECT IDJugador%i FROM partidas WHERE (IDJugador1 IN (SELECT ID FROM jugador WHERE username='%s'))))", i, username);
-        if (mysql_query (conn, query) != 0) {
+        if (mysql_query (conn, query)) {
             printf ("Error: %u %s\n", mysql_errno(conn), mysql_error(conn));
-            exit(1);
+            continue;
         }
-        res = mysql_store_result(conn);
-        row = mysql_fetch_row(res);
+		res = mysql_store_result(conn);
+		if (res == NULL) {
+			continue;
+		}
+		row = mysql_fetch_row(res);
+		if (row == NULL || row[0] == NULL) {
+			mysql_free_result(res);
+			continue;
+		}
         strcat(result, row[0]);
         strcat(result, "/");
     }
@@ -500,7 +547,12 @@ int info_partida(char idPartida[id_max_length], char *result, MYSQL *conn) {
         exit(1);
     }
     res = mysql_store_result(conn);
+	if (res == NULL)
+		return -1;
+	
     row = mysql_fetch_row(res);
+	if (row == NULL)
+		return -1;
     strcat(result, row[0]);
     strcat(result, "/");
 
@@ -510,8 +562,13 @@ int info_partida(char idPartida[id_max_length], char *result, MYSQL *conn) {
             printf ("Error: %u %s\n", mysql_errno(conn), mysql_error(conn));
             exit(1);
         }
-        res = mysql_store_result(conn);
-        row = mysql_fetch_row(res);
+		res = mysql_store_result(conn);
+		if (res == NULL)
+			continue;
+		
+		row = mysql_fetch_row(res);
+		if (row == NULL)
+			continue;
         strcat(result, row[0]);
         strcat(result, "/");
     }
@@ -538,21 +595,30 @@ int get_question(char cathegory[username_max_length], char *response, MYSQL *con
     char query[sql_query_max_length];
     strcpy(response, "8/");
     sprintf(query, "SELECT * FROM Preguntas%s ORDER BY RAND() LIMIT 1", cathegory);
-    if (mysql_query (conn, query) != 0) {
+    if (mysql_query (conn, query)) {
         printf ("Error: %u %s\n", mysql_errno(conn), mysql_error(conn));
-        exit(1);
+        return -1;
     }
     res = mysql_store_result(conn);
+	if (res == NULL)
+		return -1;
     row = mysql_fetch_row(res);
-    strcat(response, row[0]);
-    strcat(response, "/");
-    strcat(response, row[1]);
-    strcat(response, "/");
-    strcat(response, row[2]);
-    strcat(response, "/");
-    strcat(response, row[3]);
-    strcat(response, "/");
-    strcat(response, row[4]);
+	if (row == NULL)
+		return -1;
+	if (row[0] != NULL && row[1] != NULL && row[2] != NULL && row[3] != NULL && row[4] != NULL) {
+		strcat(response, row[0]);
+		strcat(response, "/");
+		strcat(response, row[1]);
+		strcat(response, "/");
+		strcat(response, row[2]);
+		strcat(response, "/");
+		strcat(response, row[3]);
+		strcat(response, "/");
+		strcat(response, row[4]);
+	}
+	else
+		return -1;
+	
     printf("Question: %s\n", response);
     return 0;
 }
@@ -561,6 +627,7 @@ int get_question(char cathegory[username_max_length], char *response, MYSQL *con
 int delete_sala(char idPartida[id_max_length], MYSQL *conn) {
     char query[sql_query_max_length];
     pthread_mutex_lock(&mutex);
+	printf("ID a borrar: %s", idPartida);
     sprintf(query, "DELETE FROM partidas WHERE IDPartida='%s'", idPartida);
     if (mysql_query(conn, query) != 0) {
         printf("Error: %u %s\n", mysql_errno(conn), mysql_error(conn));
@@ -614,7 +681,6 @@ int crear_sala(int idPartida, int idUser, char *response, MYSQL *conn) {
         printf("Error: %u %s\n", mysql_errno(conn), mysql_error(conn));
         return -1;
     }
-    strcpy(response, "15/");
     return 0;
 }
 
@@ -649,8 +715,7 @@ int join_sala(char username[username_max_length], char userPartida[username_max_
     char query[sql_query_max_length];
     int id = get_user_id(username, conn);
     int idPartida = find_sala(userPartida, conn);
-    int space;
-    sprintf(query, "UPDATE partidas SET IDJugador%i=%i WHERE IDPartida=%i", space, id, idPartida);
+    sprintf(query, "UPDATE partidas SET IDJugador%i=%i WHERE IDPartida=%i", id, id, idPartida);
     if (mysql_query(conn, query) != 0) {
         printf("Error: %u %s\n", mysql_errno(conn), mysql_error(conn));
         return -1;
@@ -729,6 +794,8 @@ void *attendClients(void *socket) {
                 stop = 1;    // stop the connection
                 int i = 0;
                 int sock[3000];
+				p = strtok(NULL, "/");
+				delete_sala(p, conn);
                 int remove = remove_user(&my_list, sock_conn);
 
                 if (remove == 0) {          // Handle user disconnect
@@ -913,17 +980,54 @@ void *attendClients(void *socket) {
 
 
             else if (option == 15) {        // Crear sala
-                p = strtok(NULL, "/");
-                strcpy(username, p);
+				p = strtok(NULL, "/");
+				if (p != NULL) {
+					strcpy(username, p);
+				} else {
+					fprintf(stderr, "Error: strtok devolvió NULL\n");
+					strcpy(username, "default_username"); // o manejar error de forma adecuada
+				}
 				printf("User: %s.\nResponse: '%s'\n", username, response);
-                pthread_mutex_lock(&mutex);
-                int idP = get_last_id_partida(conn);
-                int idU = get_user_id(username, conn);
+				int idP = get_last_id_partida(conn) + 1;
+				int idU = get_user_id(username, conn);
+				
+				strcpy(response, "15");
+				if (idP == -1 || idP == 0){
+					strcat(response, "/1");
+					idP = 1;
+				}else 
+				{
+					char idGame[10];
+					sprintf(idGame, "/%i", idP);
+					strcat(response, idGame);
+				}
+				
+				
 				printf("User ID: %i, Game ID: %i\n", idU, idP);
-                int i = crear_sala(idP, idU, response, conn);
-                pthread_mutex_unlock(&mutex);
+				
+				int i = crear_sala(idP, idU, response, conn);
+				if (i == -1) {
+					fprintf(stderr, "Error: No se pudo crear la sala\n");
+					return -1; // o maneja el error de forma adecuada
+				}
 				printf("Response: %s\n", response);
-                write(sock_conn, response, strlen(response));
+				
+				if (sock_conn >= 0) {
+					write(sock_conn, response, strlen(response));
+				} else {
+					fprintf(stderr, "Error: Socket de conexion no valido\n");
+				}
+                //p = strtok(NULL, "/");
+                //strcpy(username, p);
+				//printf("User: %s.\nResponse: '%s'\n", username, response);
+                //pthread_mutex_lock(&mutex);
+                //int idP = get_last_id_partida(conn);
+                //int idU = get_user_id(username, conn);
+				//printf("User ID: %i, Game ID: %i\n", idU, idP);
+                //int i = crear_sala(idP, idU, response, conn);
+                //pthread_mutex_unlock(&mutex);
+				//printf("Response: %s\n", response);
+                //write(sock_conn, response, strlen(response));
             }
    
    }

@@ -61,11 +61,6 @@ public class mainMenuControlls : MonoBehaviour
     {
         p1.text = $"P1: {GlobalVariables.players[0]}";
 
-        if (GlobalVariables.currentUsername == p1.text)
-            playBtn.interactable = true;
-        else
-            playBtn.interactable = false;
-
         if (GlobalVariables.players.Count > 1)
         {
             p2.text = $"P2: {GlobalVariables.players[1]}";
@@ -92,7 +87,7 @@ public class mainMenuControlls : MonoBehaviour
     // Inicia el juego
     public void play()
     {
-        if (GlobalVariables.players.Count > 1)
+        if (GlobalVariables.players.Count > 1 && GlobalVariables.currentUsername == GlobalVariables.players[0])
         {
             string response = GlobalVariables.SendRequest($"10/{GlobalVariables.idPartida}"); // Iniciar la partida
             if (response == "Game Started")
@@ -128,7 +123,7 @@ public class mainMenuControlls : MonoBehaviour
     // Desconectar y volver al Login
     public void disconnect()
     {
-        GlobalVariables.SendRequest("0/"); // Desconectar
+        GlobalVariables.SendRequest($"0/{GlobalVariables.idPartida}"); // Desconectar
         GlobalVariables.joinedGame = false;
         SceneManager.LoadSceneAsync("LoginMenu");
     }

@@ -834,6 +834,7 @@ MonoBehaviour:
   p2: {fileID: 1541552498}
   p3: {fileID: 1018120910}
   p4: {fileID: 960077319}
+  playBtn: {fileID: 0}
 --- !u!1 &721735514
 GameObject:
   m_ObjectHideFlags: 0
