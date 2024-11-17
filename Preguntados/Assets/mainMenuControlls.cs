@@ -13,7 +13,7 @@ public class mainMenuControlls : MonoBehaviour
     public TMP_Text p2;
     public TMP_Text p3;
     public TMP_Text p4;
-    public Button playBtn;
+    public TMP_Text info;
     private float timer;
 
 
@@ -22,6 +22,8 @@ public class mainMenuControlls : MonoBehaviour
         // Carga las categorias del juego
         GlobalVariables.loadCathegories();
 
+        info.text = "";
+
         // Timer de escucha del servidor
         timer = 5;
 
@@ -29,6 +31,8 @@ public class mainMenuControlls : MonoBehaviour
         GlobalVariables.inGame = false;
         GlobalVariables.turn = 0;
         GlobalVariables.racha = 0;
+        GlobalVariables.correct = false;
+        GlobalVariables.ruletaLock = false;
 
         // Comprueba si viene del login
         if (!GlobalVariables.joinedGame)
@@ -87,15 +91,27 @@ public class mainMenuControlls : MonoBehaviour
     // Inicia el juego
     public void play()
     {
-        if (GlobalVariables.players.Count > 1 && GlobalVariables.currentUsername == GlobalVariables.players[0])
+        escuchaServidor();
+        if (GlobalVariables.currentUsername.ToLower() == GlobalVariables.players[0].ToLower())
         {
-            string response = GlobalVariables.SendRequest($"10/{GlobalVariables.idPartida}"); // Iniciar la partida
-            if (response == "Game Started")
+            Debug.Log("User is host");
+            Debug.Log(GlobalVariables.players.Count);
+            Debug.Log(GlobalVariables.players[0]);
+            if (GlobalVariables.players.Count > 1)
             {
-                GlobalVariables.loadScores();
-                SceneManager.LoadSceneAsync("Ruleta");
+                string response = GlobalVariables.SendRequest($"10/{GlobalVariables.idPartida}"); // Iniciar la partida
+                Debug.Log(response);
+                if (response == "10/Game Started")
+                {
+                    GlobalVariables.loadScores();
+                    SceneManager.LoadSceneAsync("Ruleta");
+                }
             }
+            else
+                info.text = "Se necesitan 2 jugadores";
         }
+        else
+            info.text = "El host inicia el juego";
     }
 
     // Solicita la lista de jugadores en la sala y si ha iniciado partida
@@ -104,11 +120,11 @@ public class mainMenuControlls : MonoBehaviour
         timer = 5;
 
         Debug.Log("Escuchando servidor");
-        string response = GlobalVariables.SendRequest($"9/{GlobalVariables.players[0]}"); // Solicitar lista de jugadores en la sala + juego iniciado -> 0: no , 1: si / jugadores
+        string response = GlobalVariables.SendRequest($"9/{GlobalVariables.idPartida}"); // Solicitar lista de jugadores en la sala + juego iniciado -> 0: no , 1: si / jugadores
 
         Debug.Log(response);
         // Juego iniciado por el host de la sala (P1)
-        if (response.Split("/")[0] == "1")
+        if (response.Split("/")[1] == "1")
         {
             GlobalVariables.loadScores();
             SceneManager.LoadSceneAsync("Ruleta");
@@ -118,6 +134,7 @@ public class mainMenuControlls : MonoBehaviour
         GlobalVariables.players = new List<string>(response.Split("/"));
         GlobalVariables.players.RemoveAt(0);    // Elimina el 9
         GlobalVariables.players.RemoveAt(0);    // Elimina el estado de la partida (0,1)
+        GlobalVariables.players.RemoveAt(GlobalVariables.players.Count - 1);    // Elimina el ultimo
     }
 
     // Desconectar y volver al Login

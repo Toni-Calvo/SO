@@ -35,6 +35,7 @@ public class GlobalVariables : MonoBehaviour
     public static bool inGame; // Entra a ruleta
     public static int turn; // Entra a ruleta
     public static int racha; // Entra a ruleta
+    public static bool ruletaLock; // Entra a ruleta
 
     // Inicia todas las puntuaciones de los jugadores en falso (inicio de partida)
     public static void loadScores()

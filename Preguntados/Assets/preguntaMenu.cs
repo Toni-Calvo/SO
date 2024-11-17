@@ -24,6 +24,7 @@ public class preguntaMenu : MonoBehaviour
     {
         pos = Random.Range(0, 4);
         R1.transform.position = new Vector3(positions[pos][0], positions[pos][1], 0);
+        //Debug.Log(R1.transform.position);
         positions.RemoveAt(pos);
         pos = Random.Range(0, 3);
         R2.transform.position = new Vector3(positions[pos][0], positions[pos][1], 0);
@@ -38,10 +39,15 @@ public class preguntaMenu : MonoBehaviour
     private void loadButtonPositions()
     {
         positions = new List<float[]>();
-        positions.Add(new float[] { 291.48f, 282.64f });
-        positions.Add(new float[] { 809.52f , 282.64f });
-        positions.Add(new float[] { 291.48f, 110.54f });
-        positions.Add(new float[] { 809.52f, 110.54f });
+        positions.Add(new float[] { 480f, 190f });
+        positions.Add(new float[] { 1440f , 190f });
+        positions.Add(new float[] { 480f, 490f });
+        positions.Add(new float[] { 1440f, 490f });
+
+        //positions.Add(new float[] { 291.48f, 282.64f });
+        //positions.Add(new float[] { 809.52f , 282.64f });
+        //positions.Add(new float[] { 291.48f, 110.54f });
+        //positions.Add(new float[] { 809.52f, 110.54f });
     }
 
     void Start()
@@ -78,6 +84,7 @@ public class preguntaMenu : MonoBehaviour
 
             if ( timer <= 0)
             {
+                GlobalVariables.ruletaLock = false;
                 SceneManager.LoadSceneAsync("Ruleta");
             }
         }
@@ -125,6 +132,7 @@ public class preguntaMenu : MonoBehaviour
     {
         if (!block)
         {
+            R1.image.color = Color.green;
             R2.image.color = Color.red;
             block = true;
             timer = 2;
@@ -137,6 +145,7 @@ public class preguntaMenu : MonoBehaviour
     {
         if (!block)
         {
+            R1.image.color = Color.green;
             R3.image.color = Color.red;
             block = true;
             timer = 2;
@@ -149,6 +158,7 @@ public class preguntaMenu : MonoBehaviour
     {
         if (!block)
         {
+            R1.image.color = Color.green;
             R4.image.color = Color.red;
             block = true;
             timer = 2;

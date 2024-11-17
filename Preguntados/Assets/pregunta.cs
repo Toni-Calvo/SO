@@ -26,21 +26,8 @@ public class pregunta : MonoBehaviour
 
     void Start()
     {
-        // BORRAR
-        GlobalVariables.loadCathegories();
-        GlobalVariables.players = new List<string> { "player1", "player2", "player3", "player4" };
-        GlobalVariables.currentUsername = "player1";
-        GlobalVariables.inGame = false;
-        GlobalVariables.turn = 0;
-        GlobalVariables.currentQuestion = "¿Cuál es la capital de España?";
-        GlobalVariables.currentA1 = "Madrid";
-        GlobalVariables.currentA2 = "Barcelona";
-        GlobalVariables.currentA3 = "Sevilla";
-        GlobalVariables.currentA4 = "Valencia";
-        // PARAR
-
         // Escribe a los jugadores en la sala
-        //setLabels();
+        setLabels();
 
         cam.backgroundColor = new Color(0.188f, 0.2961f, 0.47f, 0f);
 
@@ -53,12 +40,21 @@ public class pregunta : MonoBehaviour
         // Desactiva la ruleta
         condition = false;
 
+
+        // Evitar multiples ejecuciones de la funcion
+        if (GlobalVariables.ruletaLock)
+            return;
+
+        GlobalVariables.ruletaLock = true;
+
         // Viene de preguntaMenu
         if (GlobalVariables.inGame)
         {
+            Debug.Log("InGame");
             // Mantener turno + sumar racha
             if (GlobalVariables.correct)
             {
+                Debug.Log("Correct");
                 GlobalVariables.correct = false;
                 // Sumar racha
                 if (GlobalVariables.racha != 3)
@@ -67,6 +63,7 @@ public class pregunta : MonoBehaviour
                 else
                 {
                     GlobalVariables.SendRequest($"13/{GlobalVariables.idPartida}/{GlobalVariables.turn + 1}"); // sumar puntuacion -> 13/idPartida/username
+                    Debug.Log("Sumar puntuacion");
                     // no espero respuesta
                     escuchaServidor();
                 }
@@ -74,22 +71,24 @@ public class pregunta : MonoBehaviour
             }
             else
             {
+                Debug.Log($"Incorrect, Actual Turn {GlobalVariables.turn}");
                 if (GlobalVariables.players.Count == GlobalVariables.turn + 1)
                     GlobalVariables.turn = 0;
                 else
                     GlobalVariables.turn++;
 
                 GlobalVariables.racha = 0;
-                GlobalVariables.SendRequest($"5/{GlobalVariables.idPartida}/{GlobalVariables.turn}"); // Cambiar turno -> 5/idPartida
+                Debug.Log($"Changing turn to: {GlobalVariables.turn}");
+                GlobalVariables.SendRequest($"5/{GlobalVariables.idPartida}/{GlobalVariables.turn + 1}"); // Cambiar turno -> 5/idPartida/nuevoTurno
             }
         }
 
         GlobalVariables.inGame = true;
 
         setLabels();
-        //escuchaServidor();
+        escuchaServidor();
         // Activa el boton de pregunta para la persona que tenga el turno
-        if (GlobalVariables.players[GlobalVariables.turn] == GlobalVariables.currentUsername)
+        if (GlobalVariables.players[GlobalVariables.turn].ToLower() == GlobalVariables.currentUsername.ToLower())
             pregunta_Btn.gameObject.SetActive(true);
         else
             pregunta_Btn.gameObject.SetActive(false);
@@ -104,8 +103,8 @@ public class pregunta : MonoBehaviour
         else 
         { 
             refreshTimer -= Time.deltaTime;
-            //if (refreshTimer < 0)
-                //escuchaServidor();
+            if (refreshTimer < 0)
+                escuchaServidor();
         }
 
         
@@ -117,27 +116,33 @@ public class pregunta : MonoBehaviour
         refreshTimer = 5;
         
         string response = GlobalVariables.SendRequest($"11/{GlobalVariables.idPartida}"); // Solicitar puntuaciones + turno -> turno/nQuesitosPlayer1/nQuesitosPlayer2/nQuesitosPlayer3/nQuesitosPlayer4
+        Debug.Log(response);
 
         // Si cambia de turno actualiza los scores
         if (GlobalVariables.turn != Convert.ToInt32(response.Split("/")[1]) - 1)
-        {
             GlobalVariables.turn = Convert.ToInt32(response.Split("/")[1]) - 1;
-            actualizaScores(response);
-            setLabels();
-        }
+
+        if (GlobalVariables.players[GlobalVariables.turn].ToLower() == GlobalVariables.currentUsername.ToLower())
+            pregunta_Btn.gameObject.SetActive(true);
+        else
+            pregunta_Btn.gameObject.SetActive(false);
+
+        actualizaScores(response);
+        setLabels();
+        
     }
 
     // Actualiza las puntuaciones de los jugadores
     private void actualizaScores(string response)
     {
-        GlobalVariables.scoreP1 = Convert.ToInt32(response.Split("/")[1]);
-        GlobalVariables.scoreP2 = Convert.ToInt32(response.Split("/")[2]);
+        GlobalVariables.scoreP1 = Convert.ToInt32(response.Split("/")[2]);
+        GlobalVariables.scoreP2 = Convert.ToInt32(response.Split("/")[3]);
         if (GlobalVariables.players.Count > 2)
         {
-            GlobalVariables.scoreP3= Convert.ToInt32(response.Split("/")[3]);
+            GlobalVariables.scoreP3= Convert.ToInt32(response.Split("/")[4]);
             if (GlobalVariables.players.Count > 3)
             {
-                GlobalVariables.scoreP4 = Convert.ToInt32(response.Split("/")[4]);
+                GlobalVariables.scoreP4 = Convert.ToInt32(response.Split("/")[5]);
             }
         }
     }
@@ -240,7 +245,7 @@ public class pregunta : MonoBehaviour
 
         // Escoger tipo de pregunta al azar
         selectedType = UnityEngine.Random.Range(0, GlobalVariables.cathegories.Count);
-        /*
+        
         string response = GlobalVariables.SendRequest($"8/{GlobalVariables.cathegories[selectedType]}"); // Solicitar pregunta
         // Guardar pregunta y respuestas
         GlobalVariables.currentQuestion = response.Split("/")[1];
@@ -248,6 +253,5 @@ public class pregunta : MonoBehaviour
         GlobalVariables.currentA2 = response.Split("/")[3];
         GlobalVariables.currentA3 = response.Split("/")[4];
         GlobalVariables.currentA4 = response.Split("/")[5];
-        */
     }
 }

@@ -493,12 +493,12 @@ int info_sala(char username[username_max_length], char *result, MYSQL *conn) {
     }
     res = mysql_store_result(conn);
 	if (res == NULL) {
-		return -1;
+		return -2;
 	}
     row = mysql_fetch_row(res);
 	if (row == NULL || row[0] == NULL) {
 		mysql_free_result(res);
-		return -1;
+		return -3;
 	}
     if (strcmp(row[0], "0") == 0) {
         strcat(result, "0/");
@@ -513,16 +513,16 @@ int info_sala(char username[username_max_length], char *result, MYSQL *conn) {
         sprintf(query, "SELECT username FROM jugador WHERE (ID IN (SELECT IDJugador%i FROM partidas WHERE (IDJugador1 IN (SELECT ID FROM jugador WHERE username='%s'))))", i, username);
         if (mysql_query (conn, query)) {
             printf ("Error: %u %s\n", mysql_errno(conn), mysql_error(conn));
-            continue;
+            break;
         }
 		res = mysql_store_result(conn);
 		if (res == NULL) {
-			continue;
+			break;
 		}
 		row = mysql_fetch_row(res);
 		if (row == NULL || row[0] == NULL) {
 			mysql_free_result(res);
-			continue;
+			break;
 		}
         strcat(result, row[0]);
         strcat(result, "/");
@@ -579,7 +579,7 @@ int info_partida(char idPartida[id_max_length], char *result, MYSQL *conn) {
 int update_turn(char idPartida[id_max_length], char turno[10], MYSQL *conn) {
     char query[sql_query_max_length];
     pthread_mutex_lock(&mutex);
-    sprintf(query, "UPDATE partidas SET duracion='%s' WHERE IDPartida='%s'", turno, idPartida);
+    sprintf(query, "UPDATE partidas SET duracion=%s WHERE IDPartida='%s'", turno, idPartida);
     if (mysql_query(conn, query) != 0) {
         printf("Error: %u %s\n", mysql_errno(conn), mysql_error(conn));
         return -1;
@@ -674,6 +674,29 @@ int get_user_id(char username[username_max_length], MYSQL *conn) {
 }
 
 
+int getUser1FromIDPartida(char idPartida[id_max_length], char *username, MYSQL *conn) {
+    char query[sql_query_max_length];
+    MYSQL_RES *res;
+    MYSQL_ROW row;
+    sprintf(query, "SELECT username FROM jugador WHERE ID IN (SELECT IDJugador1 FROM partidas WHERE IDPartida=%s)", idPartida);
+    if (mysql_query(conn, query)) {
+        fprintf(stderr, "%s\n", mysql_error(conn));
+        return -1;
+    }
+    res = mysql_store_result(conn);
+    if (res == NULL) {
+        return -1;
+    }
+    row = mysql_fetch_row(res);
+    if (row == NULL) {
+        return -1;
+    }
+    strcpy(username, row[0]);
+    mysql_free_result(res);
+    return 0;
+}
+
+
 int crear_sala(int idPartida, int idUser, char *response, MYSQL *conn) {
 	char query[sql_query_max_length];
     sprintf(query, "INSERT INTO partidas VALUES (%i, %i, NULL, NULL, NULL, '2000-01-01 12:00:00', 0, NULL, 0, 0, 0, 0)", idPartida, idUser);
@@ -689,7 +712,6 @@ int find_sala(char username[username_max_length], MYSQL *conn) {
     char query[sql_query_max_length];
     MYSQL_RES *res;
     MYSQL_ROW row;
-    pthread_mutex_lock(&mutex);
     sprintf(query, "SELECT IDPartida FROM partidas WHERE (IDJugador1 IN (SELECT ID FROM jugador WHERE username='%s') OR IDJugador2 IN (SELECT ID FROM jugador WHERE username='%s') OR IDJugador3 IN (SELECT ID FROM jugador WHERE username='%s') OR IDJugador4 IN (SELECT ID FROM jugador WHERE username='%s'))", username, username, username, username);
     if (mysql_query(conn, query)) {
         fprintf(stderr, "%s\n", mysql_error(conn));
@@ -703,9 +725,37 @@ int find_sala(char username[username_max_length], MYSQL *conn) {
     if (row == NULL) {
         return -1;
     }
-    pthread_mutex_unlock(&mutex);
     mysql_free_result(res);
     return atoi(row[0]);
+}
+
+
+int findNextPlayerSpot(int idPartida, MYSQL *conn) {
+    MYSQL_RES *res;
+    MYSQL_ROW row;
+    char query[sql_query_max_length];
+    sprintf(query, "SELECT IDJugador1, IDJugador2, IDJugador3, IDJugador4 FROM partidas WHERE IDPartida=%i", idPartida);
+    if (mysql_query(conn, query)) {
+        fprintf(stderr, "%s\n", mysql_error(conn));
+        return -1;
+    }
+    res = mysql_store_result(conn);
+    if (res == NULL) {
+        return -1;
+    }
+    row = mysql_fetch_row(res);
+    if (row == NULL) {
+        return -1;
+    }
+    int id = 0;
+    for (int i = 1; i < 5; i++) {
+        if (row[i-1] == NULL) {
+            id = i;
+            break;
+        }
+        id = -1;
+    }
+    return id;
 }
 
 
@@ -713,13 +763,20 @@ int join_sala(char username[username_max_length], char userPartida[username_max_
     MYSQL_RES *res;
     MYSQL_ROW row;
     char query[sql_query_max_length];
+    pthread_mutex_lock(&mutex);
     int id = get_user_id(username, conn);
     int idPartida = find_sala(userPartida, conn);
-    sprintf(query, "UPDATE partidas SET IDJugador%i=%i WHERE IDPartida=%i", id, id, idPartida);
+    int player = findNextPlayerSpot(idPartida, conn);
+    if (player == -1) {
+        sprintf(response, "14/Error");
+        return -1;
+    }
+    sprintf(query, "UPDATE partidas SET IDJugador%i=%i WHERE IDPartida=%i", player, id, idPartida);
     if (mysql_query(conn, query) != 0) {
         printf("Error: %u %s\n", mysql_errno(conn), mysql_error(conn));
         return -1;
     }
+    pthread_mutex_unlock(&mutex);
     sprintf(response, "14/%i", idPartida);
     return 0;
 }
@@ -774,7 +831,7 @@ void *attendClients(void *socket) {
            and the loop breaks.*/
         petition[ret] = '\0';
         
-        printf("Petition: %s\n", petition);
+        printf("Petition n�%s: ", petition);
 
             char *p = strtok(petition, "/");
             int option = atoi(p);
@@ -791,6 +848,7 @@ void *attendClients(void *socket) {
             strcpy(email, "");
 
             if (option == 0) {
+				printf("Disconnect\n");
                 stop = 1;    // stop the connection
                 int i = 0;
                 int sock[3000];
@@ -817,6 +875,7 @@ void *attendClients(void *socket) {
             }
 
             else if (option == 1) {       // Handle Login (connection)
+				printf("Login\n");
                 p = strtok(NULL, "/");
                 strcpy(username, p);
 
@@ -844,6 +903,7 @@ void *attendClients(void *socket) {
             }
 
             else if (option == 3) {        // Handle user registration
+				printf("Register\n");
                 strcpy(response, "");
                 p = strtok(NULL, "/");
                 strcpy(username, p);
@@ -884,6 +944,7 @@ void *attendClients(void *socket) {
 
             
             else if (option == 5) {             // Update turn
+				printf("Update turn\n");
                 p = strtok(NULL, "/");
                 strcpy(idPartida, p);
                 p = strtok(NULL, "/");
@@ -895,6 +956,7 @@ void *attendClients(void *socket) {
 
 
             else if (option == 6) {           // Send all usernames in database
+				printf("Get All Users\n");
                 getUsernames(total, conn);
                 pthread_mutex_lock(&mutex);   // since in the function we are using the mutex, we have to lock it.
                 sprintf(response, "6/%s", total);
@@ -906,6 +968,7 @@ void *attendClients(void *socket) {
 
             else if (option == 7) {           
                 // option 7 is to get the list of active users.
+				printf("Get All Connected Users\n");
 				char connectedPlayers[write_buffer_length];
                 user_list(connectedPlayers);
                 printf("Connected Players: %s\n", connectedPlayers);
@@ -916,6 +979,7 @@ void *attendClients(void *socket) {
 
 
             else if (option == 8) {         // Get a question from the given cathegory
+				printf("Get a Question\n");
                 p = strtok(NULL, "/");
                 get_question(p, response, conn);
                 write(sock_conn, response, strlen(response));
@@ -923,24 +987,29 @@ void *attendClients(void *socket) {
 
 
             else if (option == 9) {         // Informacion de la sala
+				printf("Info Lobby\n");
 				p = strtok(NULL, "/");
-				strcpy(username, p);
+				getUser1FromIDPartida(p, username, conn);
+                printf("User: %s\n", username);
 				int res = info_sala(username, response, conn);
+                printf("Response: %s\n", response);
 				write(sock_conn, response, strlen(response));
             }
 
             
             else if (option == 10) {        // Iniciar partida
+				printf("Start Game\n");
                 p = strtok(NULL, "/");
                 strcpy(idPartida, p);
                 strcpy(turno, "1");
                 update_turn(idPartida, turno, conn);
-                strcpy(response, "10/");
+                strcpy(response, "10/Game Started");
                 write(sock_conn, response, strlen(response));
             }
 
 
             else if (option == 11) {        // Informacion de la partida
+				printf("Info Game\n");
                 p = strtok(NULL, "/");
                 strcpy(idPartida, p);
                 int res = info_partida(idPartida, response, conn);
@@ -949,6 +1018,7 @@ void *attendClients(void *socket) {
 
 
             else if (option == 12) {        // Borrar sala
+				printf("Delete Game\n");
                 p = strtok(NULL, "/");
                 strcpy(idPartida, p);
                 int res = delete_sala(idPartida, conn);
@@ -958,6 +1028,7 @@ void *attendClients(void *socket) {
 
 
             else if (option == 13) {        // Sumar punto
+				printf("Add Point\n");
                 p = strtok(NULL, "/");
                 strcpy(idPartida, p);
                 p = strtok(NULL, "/");
@@ -969,6 +1040,7 @@ void *attendClients(void *socket) {
 
 
             else if (option == 14) {        // Unirse a una sala
+				printf("Join Lobby\n");
                 p = strtok(NULL, "/");
                 strcpy(username, p);
                 char userPartida[username_max_length];
@@ -980,6 +1052,7 @@ void *attendClients(void *socket) {
 
 
             else if (option == 15) {        // Crear sala
+				printf("Create Lobby\n");
 				p = strtok(NULL, "/");
 				if (p != NULL) {
 					strcpy(username, p);

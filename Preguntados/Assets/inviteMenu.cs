@@ -32,26 +32,38 @@ public class inviteMenu : MonoBehaviour
             userBtn.transform.position = new Vector3(1920/2, 1080/2 + 475 - 75*i, 0);
             userBtn.GetComponent<RectTransform>().sizeDelta = new Vector2(1920, 75);
             userBtn.image.color = new Color32(255, 255, 255, 0);
-            userBtn.GetComponentInChildren<TMP_Text>().text = users[i];
-            userBtn.GetComponentInChildren<TMP_Text>().fontSize = 32;
-            userBtn.GetComponentInChildren<TMP_Text>().color = new Color32(255, 255, 255, 255);
-            userBtn.onClick.AddListener(() => userBtnClick(userBtn));
+            userBtn.GetComponentInChildren<Text>().text = users[i];
+            userBtn.GetComponentInChildren<Text>().fontSize = 32;
+            userBtn.GetComponentInChildren<Text>().color = new Color32(255, 255, 255, 255);
+            userBtn.GetComponentInChildren<Text>().fontStyle = FontStyle.Bold;
+            assignListener(userBtn, users[i]);
         }
     }
     
+    private void assignListener(Button userBtn, string user)
+    {
+        userBtn.onClick.AddListener(() => userBtnClick(user));
+    }
+
     // Vuelta al menu
     public void backClick()
     {
         SceneManager.LoadSceneAsync("MainMenu");
     }
 
-    public void userBtnClick(Button btn)
+    public void userBtnClick(string user)
     {
-        Debug.Log($"Clicked {btn.GetComponentInChildren<TMP_Text>().text}");
-        if (btn.GetComponentInChildren<TMP_Text>().text == GlobalVariables.currentUsername)
+        Debug.Log($"Clicked {user}");
+        if (user == GlobalVariables.currentUsername)
             return;
 
-        GlobalVariables.SendRequest($"14/{GlobalVariables.currentUsername}/{btn.GetComponentInChildren<TMP_Text>().text}"); // Unirse a sala
+        string response = GlobalVariables.SendRequest($"14/{GlobalVariables.currentUsername}/{user}"); // Unirse a sala
+
+        if (response == "14/Error") // Falta mostrar en la UI
+            return;
+
+        GlobalVariables.idPartida = Convert.ToInt32(response.Split("/")[1]);
+        Debug.Log($"Joining Game {GlobalVariables.idPartida}");
         GlobalVariables.joinedGame = true;
         SceneManager.LoadSceneAsync("MainMenu");
     }
