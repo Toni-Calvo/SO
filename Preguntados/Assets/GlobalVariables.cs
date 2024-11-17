@@ -12,8 +12,8 @@ public class GlobalVariables : MonoBehaviour
      Este archivo sirve para funciones y variables necesitadas en todas las escenas del juego 
     */
 
-    private const string serverIP = "192.168.56.102";
-    private const int serverPort = 8080;
+    private const string serverIP = "10.4.119.5";
+    private const int serverPort = 50080;
     private static TcpClient client;
 
     public static string registeredUsername; // Entra a login
