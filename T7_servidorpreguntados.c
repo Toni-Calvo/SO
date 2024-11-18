@@ -781,6 +781,30 @@ int join_sala(char username[username_max_length], char userPartida[username_max_
     return 0;
 }
 
+
+int deletePartidas() {
+    MYSQL *conn;
+    conn = mysql_init(NULL);
+
+    if (conn == NULL) {
+        printf("Error %u: %s\n", mysql_errno(conn), mysql_error(conn));
+        exit(1);
+    }
+    conn = mysql_real_connect(conn, database_host, database_username, database_password, database_name, 0, NULL, 0);
+    if (conn == NULL) {
+        printf("Error %u: %s\n", mysql_errno(conn), mysql_error(conn));
+        exit(1);
+    }
+
+    char query[sql_query_max_length];
+    strcpy(query, "DELETE FROM partidas");
+    if (mysql_query(conn, query) != 0) {
+        printf("Error: %u %s\n", mysql_errno(conn), mysql_error(conn));
+        return -1;
+    }
+    return 0;
+}
+
 // this function is to get the petition from the client.
 
 void *attendClients(void *socket) {
@@ -1138,7 +1162,10 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
-    printf("Waiting for connections on port %d...\n", PORT);
+	deletePartidas();
+ 
+	printf("Waiting for connections on port %d...\n", PORT);
+
 
     while (1) {
         new_sock = accept(sockfd, (struct sockaddr *)&client_addr, &addr_len);
