@@ -62,6 +62,7 @@ public class pregunta : MonoBehaviour
                 // Sumar score
                 else
                 {
+                    GlobalVariables.racha = 0;
                     GlobalVariables.SendRequest($"13/{GlobalVariables.idPartida}/{GlobalVariables.turn + 1}"); // sumar puntuacion -> 13/idPartida/username
                     Debug.Log("Sumar puntuacion");
                     // no espero respuesta
