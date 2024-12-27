@@ -12,10 +12,10 @@ public class GlobalVariables : MonoBehaviour
      Este archivo sirve para funciones y variables necesitadas en todas las escenas del juego 
     */
 
-    private const string serverIP = "10.4.119.5";
-    private const int serverPort = 50080;
+    private const string serverIP = "127.0.0.1";
+    private const int serverPort = 8080;
     private static TcpClient client;
-
+    public static List<int> games; // Entra a MainMenu
     public static string registeredUsername; // Entra a login
     public static string currentUsername; // Entra a mainMenu
     public static bool joinedGame; // Entra a mainMenu
@@ -36,6 +36,8 @@ public class GlobalVariables : MonoBehaviour
     public static int turn; // Entra a ruleta
     public static int racha; // Entra a ruleta
     public static bool ruletaLock; // Entra a ruleta
+    public static string inviteJoin; // Entra a mainMenu
+    public static string ganador; // Entra a endGame
 
     // Inicia todas las puntuaciones de los jugadores en falso (inicio de partida)
     public static void loadScores()
@@ -75,7 +77,7 @@ public class GlobalVariables : MonoBehaviour
             int bytesRead = stream.Read(buffer, 0, buffer.Length);
             string response = Encoding.ASCII.GetString(buffer, 0, bytesRead);
 
-            // Cerrar conexión
+            // Cerrar conexiï¿½n
             stream.Close();
             client.Close();
 

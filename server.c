@@ -759,6 +759,31 @@ int findNextPlayerSpot(int idPartida, MYSQL *conn) {
 }
 
 
+void get_all_games(char *games, MYSQL *conn) {
+    MYSQL_RES *res;
+    MYSQL_ROW row;
+    char query[sql_query_max_length];
+    char result[write_buffer_length];
+    int counter = 0;
+    sprintf(query, "SELECT IDPartida FROM partidas WHERE duracion='0'");
+    if (mysql_query (conn, query)) {
+        printf ("Error: %u %s\n", mysql_errno(conn), mysql_error(conn));
+        return;
+    }
+    res = mysql_store_result(conn);
+    row = mysql_fetch_row(res);
+    strcpy(result, "");    // empty the result (initialize)
+    while (row != NULL) {
+        sprintf(result, "%s%s/", result, row[0]);
+        row = mysql_fetch_row(res);
+        counter++;
+    }
+    result[strlen(result) - 1] = '\0'; // remove the last '/'
+    sprintf(games, "%d/%s", counter, result);
+    printf("Games: %s\n", games);
+}
+
+
 int join_sala(char username[username_max_length], char userPartida[username_max_length], char *response, MYSQL *conn) {
     MYSQL_RES *res;
     MYSQL_ROW row;
@@ -939,6 +964,15 @@ void *attendClients(void *socket) {
                     }
                 }
                 printf("Response: %s\n", response);
+                write(sock_conn, response, strlen(response));
+            }
+
+
+            else if (option == 4) {         // Get all games active
+                printf("Get All Games\n");
+                char games[write_buffer_length];
+                get_all_games(games, conn);
+                sprintf(response, "4/%s", games);
                 write(sock_conn, response, strlen(response));
             }
 

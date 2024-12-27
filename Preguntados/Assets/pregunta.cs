@@ -138,14 +138,28 @@ public class pregunta : MonoBehaviour
     {
         GlobalVariables.scoreP1 = Convert.ToInt32(response.Split("/")[2]);
         GlobalVariables.scoreP2 = Convert.ToInt32(response.Split("/")[3]);
+        if (GlobalVariables.scoreP1 == 5)
+            acabaPartida(GlobalVariables.players[0]);
+        if (GlobalVariables.scoreP2 == 5)
+            acabaPartida(GlobalVariables.players[1]);
         if (GlobalVariables.players.Count > 2)
         {
-            GlobalVariables.scoreP3= Convert.ToInt32(response.Split("/")[4]);
+            GlobalVariables.scoreP3 = Convert.ToInt32(response.Split("/")[4]);
+            if (GlobalVariables.scoreP3 == 5)
+                acabaPartida(GlobalVariables.players[2]);
             if (GlobalVariables.players.Count > 3)
             {
                 GlobalVariables.scoreP4 = Convert.ToInt32(response.Split("/")[5]);
+                if (GlobalVariables.scoreP4 == 5)
+                    acabaPartida(GlobalVariables.players[3]);
             }
         }
+    }
+
+    private void acabaPartida(string player) 
+    {
+        GlobalVariables.ganador = player;
+        SceneManager.LoadSceneAsync("EndGame");
     }
 
     // Girar la ruleta + pedir pregunta -> cambio a preguntaMenu
@@ -171,10 +185,10 @@ public class pregunta : MonoBehaviour
             contLabel = 0;
             if (tipoPregunta.text == "Historia")
             {
-                tipoPregunta.text = "Geografía";
+                tipoPregunta.text = "Geografï¿½a";
                 cam.backgroundColor = Color.yellow;
             }
-            else if (tipoPregunta.text == "Geografía")
+            else if (tipoPregunta.text == "Geografï¿½a")
             {
                 tipoPregunta.text = "Ciencia";
                 cam.backgroundColor = Color.green;

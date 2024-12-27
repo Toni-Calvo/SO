@@ -41,11 +41,12 @@ public class mainMenuControlls : MonoBehaviour
             GlobalVariables.idPartida = Convert.ToInt32(response.Split("/")[1]);
             GlobalVariables.players = new List<string>();
             GlobalVariables.players.Add(GlobalVariables.currentUsername);
+            GlobalVariables.games.Add(GlobalVariables.idPartida);
         }
         // Se ha unido a una sala
         else
             escuchaServidor();
-
+        
         actualizaLabels();
     }
 
@@ -84,8 +85,35 @@ public class mainMenuControlls : MonoBehaviour
         if (GlobalVariables.players.Count == 1)
         {
             GlobalVariables.SendRequest($"12/{GlobalVariables.idPartida}"); // Eliminar sala
+            GlobalVariables.inviteJoin = "Join";
             SceneManager.LoadSceneAsync("InviteMenu");
         }
+    }
+
+    // Cambia a la pantalla de join
+    public void joinClicked()
+    {
+        escuchaServidor();
+        if (GlobalVariables.players.Count > 1)
+        {
+            info.text = "Vacia la sala antes de unirte";
+            return;
+        }
+        GlobalVariables.SendRequest($"12/{GlobalVariables.idPartida}"); // Eliminar sala
+        GlobalVariables.inviteJoin = "Join";
+        SceneManager.LoadSceneAsync("JoinMenu");
+    }
+
+    public void inviteClicked()
+    {
+        escuchaServidor();
+        if (GlobalVariables.players.Count == 4)
+        {
+            info.text = "Sala llena";
+            return;
+        }
+        GlobalVariables.inviteJoin = "Invite";
+        SceneManager.LoadSceneAsync("InviteMenu");
     }
 
     // Inicia el juego

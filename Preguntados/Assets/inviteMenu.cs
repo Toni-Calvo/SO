@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection.Emit;
 using System.Text;
 using TMPro;
 using UnityEditor.PackageManager;
@@ -13,11 +14,20 @@ using UnityEngine.UI;
 public class inviteMenu : MonoBehaviour
 {
     public Button userBtn;
+    public TextMeshPro errorBox;
 
     void Start()
     {
-        string response = GlobalVariables.SendRequest("7/"); // Solicita la lista de jugadores conectados
-        Debug.Log(response);
+        string response;
+        if (GlobalVariables.inviteJoin == "Invite") {
+            errorBox.text = "Selecciona un usuario para invitar a tu sala.";
+            response = GlobalVariables.SendRequest("7/"); // Solicita la lista de jugadores conectados
+        }
+        else {
+            errorBox.text = "Selecciona una sala a la que unirte.";
+            response = GlobalVariables.SendRequest("4/"); // Solicita la lista de partidas
+            Debug.Log(response);
+        }
 
         // Crear lista de jugadores conectados
         List<string> users = new List<string>(response.Split("/")); // 7/nPlayers/username1/username2/.../usernameN
@@ -51,20 +61,64 @@ public class inviteMenu : MonoBehaviour
         SceneManager.LoadSceneAsync("MainMenu");
     }
 
-    public void userBtnClick(string user)
-    {
-        Debug.Log($"Clicked {user}");
-        if (user == GlobalVariables.currentUsername)
-            return;
-
+    // Unirse a sala
+    private void joinSala(string user) {
         string response = GlobalVariables.SendRequest($"14/{GlobalVariables.currentUsername}/{user}"); // Unirse a sala
 
-        if (response == "14/Error") // Falta mostrar en la UI
+        if (response == "14/Error") {
+            errorBox.text = "Esa sala ya no existe.";
             return;
+        }
+        int nuevaID = Convert.ToInt32(response.Split("/")[1]);
 
-        GlobalVariables.idPartida = Convert.ToInt32(response.Split("/")[1]);
+        if (nuevaID == GlobalVariables.idPartida) {
+            errorBox.text = "Ya estas en esa sala.";
+            return;
+        }
+
+        GlobalVariables.idPartida = nuevaID;
         Debug.Log($"Joining Game {GlobalVariables.idPartida}");
         GlobalVariables.joinedGame = true;
         SceneManager.LoadSceneAsync("MainMenu");
+    }
+
+    // Invitar a sala
+    private void inviteToSala(string user) {
+        string response = GlobalVariables.SendRequest($"/{GlobalVariables.currentUsername}/{user}"); // Invitar a sala
+
+        if (response == "4/Error") {
+            errorBox.text = "Esa sala ya no existe.";
+            return;
+        }
+
+        int nuevaID = Convert.ToInt32(response.Split("/")[1]);
+
+        if (nuevaID == GlobalVariables.idPartida) {
+            errorBox.text = "Ya estas en esa sala.";
+            return;
+        }
+
+        GlobalVariables.idPartida = nuevaID;
+        Debug.Log($"Inviting {user} to Game {GlobalVariables.idPartida}");
+        GlobalVariables.joinedGame = true;
+        SceneManager.LoadSceneAsync("MainMenu");
+    }
+
+    // Click en boton de usuario
+    public void userBtnClick(string user)
+    {
+        Debug.Log($"Clicked {user}");
+        if (user == GlobalVariables.currentUsername) {
+            if (GlobalVariables.inviteJoin == "Invite")
+                errorBox.text = "No puedes invitarte a ti mismo.";
+            else
+                errorBox.text = "Ya estas en esa sala.";
+            return;
+        }
+
+        if (GlobalVariables.inviteJoin == "Invite") 
+            inviteToSala(user);
+        else
+            joinSala(user);
     }
 }
