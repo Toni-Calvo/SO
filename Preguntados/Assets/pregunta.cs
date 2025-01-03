@@ -57,7 +57,7 @@ public class pregunta : MonoBehaviour
                 Debug.Log("Correct");
                 GlobalVariables.correct = false;
                 // Sumar racha
-                if (GlobalVariables.racha != 3)
+                if (GlobalVariables.racha != GlobalVariables.maxRacha)
                     GlobalVariables.racha++;
                 // Sumar score
                 else
@@ -138,19 +138,19 @@ public class pregunta : MonoBehaviour
     {
         GlobalVariables.scoreP1 = Convert.ToInt32(response.Split("/")[2]);
         GlobalVariables.scoreP2 = Convert.ToInt32(response.Split("/")[3]);
-        if (GlobalVariables.scoreP1 == 5)
+        if (GlobalVariables.scoreP1 == GlobalVariables.maxPuntuacion)
             acabaPartida(GlobalVariables.players[0]);
-        if (GlobalVariables.scoreP2 == 5)
+        if (GlobalVariables.scoreP2 == GlobalVariables.maxPuntuacion)
             acabaPartida(GlobalVariables.players[1]);
         if (GlobalVariables.players.Count > 2)
         {
             GlobalVariables.scoreP3 = Convert.ToInt32(response.Split("/")[4]);
-            if (GlobalVariables.scoreP3 == 5)
+            if (GlobalVariables.scoreP3 == GlobalVariables.maxPuntuacion)
                 acabaPartida(GlobalVariables.players[2]);
             if (GlobalVariables.players.Count > 3)
             {
                 GlobalVariables.scoreP4 = Convert.ToInt32(response.Split("/")[5]);
-                if (GlobalVariables.scoreP4 == 5)
+                if (GlobalVariables.scoreP4 == GlobalVariables.maxPuntuacion)
                     acabaPartida(GlobalVariables.players[3]);
             }
         }

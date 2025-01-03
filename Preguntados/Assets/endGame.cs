@@ -45,6 +45,8 @@ public class endGame : MonoBehaviour
 
     public void returnToMainMenu()
     {
+        GlobalVariables.initializeVariables();
+        GlobalVariables.joinedGame = false;
         SceneManager.LoadSceneAsync("MainMenu");
     }
 

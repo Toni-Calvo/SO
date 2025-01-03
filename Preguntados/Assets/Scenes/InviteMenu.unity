@@ -240,7 +240,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   userBtn: {fileID: 7269262710863823607, guid: a38bf710a16bafd4c9c77ff300bd4eee, type: 3}
-  errorBox: {fileID: 0}
+  errorBox: {fileID: 1059746752}
 --- !u!1 &1059746750
 GameObject:
   m_ObjectHideFlags: 0
@@ -253,7 +253,7 @@ GameObject:
   - component: {fileID: 1059746753}
   - component: {fileID: 1059746752}
   m_Layer: 5
-  m_Name: Text (TMP)
+  m_Name: ErrorMSG
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

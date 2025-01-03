@@ -11,9 +11,11 @@ public class GlobalVariables : MonoBehaviour
     /*
      Este archivo sirve para funciones y variables necesitadas en todas las escenas del juego 
     */
-
-    private const string serverIP = "127.0.0.1";
+    
+    private const string serverIP = "192.168.56.102";
     private const int serverPort = 8080;
+    public static int maxRacha = 1; // Entra a ruleta
+    public static int maxPuntuacion = 1; // Entra a ruleta
     private static TcpClient client;
     public static List<int> games; // Entra a MainMenu
     public static string registeredUsername; // Entra a login
@@ -57,6 +59,16 @@ public class GlobalVariables : MonoBehaviour
         GlobalVariables.cathegories.Add("Ciencia");
         GlobalVariables.cathegories.Add("Arte");
         GlobalVariables.cathegories.Add("Entretenimiento");
+    }
+
+    // Inicializacion del turno, estado del juego, racha y puntuacion maxima
+    public static void initializeVariables()
+    {
+        GlobalVariables.inGame = false;
+        GlobalVariables.turn = 0;
+        GlobalVariables.racha = 0;
+        GlobalVariables.correct = false;
+        GlobalVariables.ruletaLock = false;
     }
 
     // Envia una solicitud al servidor y recibe una respuesta

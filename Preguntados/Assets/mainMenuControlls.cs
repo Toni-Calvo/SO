@@ -15,24 +15,21 @@ public class mainMenuControlls : MonoBehaviour
     public TMP_Text p4;
     public TMP_Text info;
     private float timer;
+    public TMP_Text GameIDLbl;
 
 
     void Start()
     {
+        // Timer de escucha del servidor
+        timer = 5;
+        
         // Carga las categorias del juego
         GlobalVariables.loadCathegories();
 
         info.text = "";
 
-        // Timer de escucha del servidor
-        timer = 5;
-
         // Inicializacion del turno, estado del juego y racha
-        GlobalVariables.inGame = false;
-        GlobalVariables.turn = 0;
-        GlobalVariables.racha = 0;
-        GlobalVariables.correct = false;
-        GlobalVariables.ruletaLock = false;
+        GlobalVariables.initializeVariables();
 
         // Comprueba si viene del login
         if (!GlobalVariables.joinedGame)
@@ -64,6 +61,7 @@ public class mainMenuControlls : MonoBehaviour
     // Actualiza las personas en sala
     private void actualizaLabels()
     {
+        GameIDLbl.text = $"Game ID: {GlobalVariables.idPartida}";
         p1.text = $"P1: {GlobalVariables.players[0]}";
 
         if (GlobalVariables.players.Count > 1)
@@ -74,19 +72,20 @@ public class mainMenuControlls : MonoBehaviour
                 p3.text = $"P3: {GlobalVariables.players[2]}";
                 if (GlobalVariables.players.Count > 3)
                     p4.text = $"P4: {GlobalVariables.players[3]}";
+                else
+                    p4.text = "";
+            }
+            else
+            {
+                p3.text = "";
+                p4.text = "";
             }
         }
-    }
-
-    // Cambia a la pantalla de invitacion
-    public void listConnected()
-    {
-        escuchaServidor();
-        if (GlobalVariables.players.Count == 1)
+        else
         {
-            GlobalVariables.SendRequest($"12/{GlobalVariables.idPartida}"); // Eliminar sala
-            GlobalVariables.inviteJoin = "Join";
-            SceneManager.LoadSceneAsync("InviteMenu");
+            p2.text = "";
+            p3.text = "";
+            p4.text = "";
         }
     }
 
@@ -101,7 +100,7 @@ public class mainMenuControlls : MonoBehaviour
         }
         GlobalVariables.SendRequest($"12/{GlobalVariables.idPartida}"); // Eliminar sala
         GlobalVariables.inviteJoin = "Join";
-        SceneManager.LoadSceneAsync("JoinMenu");
+        SceneManager.LoadSceneAsync("InviteMenu");
     }
 
     public void inviteClicked()
@@ -168,7 +167,7 @@ public class mainMenuControlls : MonoBehaviour
     // Desconectar y volver al Login
     public void disconnect()
     {
-        GlobalVariables.SendRequest($"0/{GlobalVariables.idPartida}"); // Desconectar
+        GlobalVariables.SendRequest($"0/{GlobalVariables.currentUsername}/{GlobalVariables.idPartida}"); // Desconectar
         GlobalVariables.joinedGame = false;
         SceneManager.LoadSceneAsync("LoginMenu");
     }

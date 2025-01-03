@@ -14,7 +14,7 @@ using UnityEngine.UI;
 public class inviteMenu : MonoBehaviour
 {
     public Button userBtn;
-    public TextMeshPro errorBox;
+    public TMP_Text errorBox;
 
     void Start()
     {
@@ -114,6 +114,16 @@ public class inviteMenu : MonoBehaviour
             else
                 errorBox.text = "Ya estas en esa sala.";
             return;
+        }
+
+        foreach (string player in GlobalVariables.players) {
+            if (player.ToLower() == user.ToLower()) {
+                if (GlobalVariables.inviteJoin == "Invite")
+                    errorBox.text = $"{user} ya esta en tu sala.";
+                else
+                    errorBox.text = "Ya estas en esa sala.";
+                return;
+            }
         }
 
         if (GlobalVariables.inviteJoin == "Invite") 
