@@ -375,18 +375,81 @@ int remove_user_from_database(char name[username_max_length], MYSQL *conn) {
     MYSQL_RES *res;
     MYSQL_ROW row;
     char query[sql_query_max_length];
-    if (user_exists(name, conn) == 0) {
-        sprintf(query, "DELETE FROM jugador WHERE username = '%s'", name);
-        if (mysql_query(conn, query) != 0) {
-            printf("Error: %u %s\n", mysql_errno(conn), mysql_error(conn));
-            return -1;
-        }
-        return 0;
-    }
-    else {
-        printf("User does not exist therefore can not be eliminated.\n");
+    int user_id;
+
+    if (user_exists(name, conn) == -1) {
+        printf("User does not exist, cannot delete.\n");
         return -1;
     }
+
+    //Get the user ID
+    sprintf(query, "SELECT ID FROM jugador WHERE username = '%s'", name);
+    if (mysql_query(conn, query) != 0) {
+        printf("Error fetching user ID: %u %s\n", mysql_errno(conn), mysql_error(conn));
+        return -1;
+    }
+    res = mysql_store_result(conn);
+    if ((row = mysql_fetch_row(res)) == NULL) {
+        printf("Error: User ID could not be retrieved.\n");
+        mysql_free_result(res);
+        return -1;
+    }
+    user_id = atoi(row[0]);
+    mysql_free_result(res);
+
+    //Delete related data from "RelacionIDsPartidas"
+    sprintf(query, "DELETE FROM RelacionIDsPartidas WHERE IDJugador = %d", user_id);
+    if (mysql_query(conn, query) != 0) {
+        printf("Error deleting from RelacionIDsPartidas: %u %s\n", mysql_errno(conn), mysql_error(conn));
+        return -1;
+    }
+
+    //Delete the user references in "partidas"
+    sprintf(query, "UPDATE partidas SET IDJugador1 = NULL WHERE IDJugador1 = %d", user_id);
+    if (mysql_query(conn, query) != 0) {
+        printf("Error updating partidas (IDJugador1): %u %s\n", mysql_errno(conn), mysql_error(conn));
+        return -1;
+    }
+    sprintf(query, "UPDATE partidas SET IDJugador2 = NULL WHERE IDJugador2 = %d", user_id);
+    if (mysql_query(conn, query) != 0) {
+        printf("Error updating partidas (IDJugador2): %u %s\n", mysql_errno(conn), mysql_error(conn));
+        return -1;
+    }
+    sprintf(query, "UPDATE partidas SET IDJugador3 = NULL WHERE IDJugador3 = %d", user_id);
+    if (mysql_query(conn, query) != 0) {
+        printf("Error updating partidas (IDJugador3): %u %s\n", mysql_errno(conn), mysql_error(conn));
+        return -1;
+    }
+    sprintf(query, "UPDATE partidas SET IDJugador4 = NULL WHERE IDJugador4 = %d", user_id);
+    if (mysql_query(conn, query) != 0) {
+        printf("Error updating partidas (IDJugador4): %u %s\n", mysql_errno(conn), mysql_error(conn));
+        return -1;
+    }
+
+    //Delete games with no players left
+    sprintf(query, "DELETE FROM partidas WHERE IDJugador1 IS NULL AND IDJugador2 IS NULL AND IDJugador3 IS NULL AND IDJugador4 IS NULL");
+    if (mysql_query(conn, query) != 0) {
+        printf("Error deleting empty partidas: %u %s\n", mysql_errno(conn), mysql_error(conn));
+        return -1;
+    }
+
+    //Remove user from conectados
+    sprintf(query, "DELETE FROM conectados WHERE nombre = '%s'", name);
+    if (mysql_query(conn, query) != 0) {
+        printf("Error deleting from conectados: %u %s\n", mysql_errno(conn), mysql_error(conn));
+        return -1;
+    }
+
+    //Delete user from jugador
+    sprintf(query, "DELETE FROM jugador WHERE ID = %d", user_id);
+    if (mysql_query(conn, query) != 0) {
+        printf("Error deleting from jugador: %u %s\n", mysql_errno(conn), mysql_error(conn));
+        return -1;
+    }
+
+    printf("User and all related data successfully deleted.\n");
+    return 0;
+}
 }
 
 
@@ -781,8 +844,47 @@ int join_sala(char username[username_max_length], char userPartida[username_max_
     return 0;
 }
 
-// this function is to get the petition from the client.
 
+// Function to broadcast chat messages to users within the same *sala*
+void handle_chat_message(const char *sender_username, const char *message) {
+    MYSQL *conn;
+    conn = mysql_init(NULL);
+    if (conn == NULL) {
+        printf("Error %u: %s\n", mysql_errno(conn), mysql_error(conn));
+        exit(1);
+    }
+
+    conn = mysql_real_connect(conn, database_host, database_username, database_password, database_name, 0, NULL, 0);
+    if (conn == NULL) {
+        printf("Error %u: %s\n", mysql_error(conn));
+        return;
+    }
+
+    // Find the room ID for the sender to broadcast the message to the correct room
+    int sala_id = find_sala(sender_username, conn);
+    if (sala_id == -1) {
+        printf("User %s is not in a room\n", sender_username);
+        return;
+    }
+
+    /*IRC-style formatted message that includes sender’s username, message type, and content
+    It is not necessary to know how this part of the code, because this is a protocol to chat,
+    since we are using server (later, we'll be using SHIVA) this makes our task much easier.*/
+    char formatted_message[write_buffer_length];
+    snprintf(formatted_message, sizeof(formatted_message), ":%s PRIVMSG #%d :%s", sender_username, sala_id, message);   // snprintf is used to avoid buffer overflow
+    pthread_mutex_lock(&mutex);
+    for (int i = 0; i < my_list.user_count; i++) {
+        if (find_sala(my_list.users[i].username, conn) == sala_id) {
+            write(my_list.users[i].socket, formatted_message, strlen(formatted_message));
+        }
+    }
+    pthread_mutex_unlock(&mutex);
+    mysql_close(conn);
+}
+
+
+
+// this function is to get the petition from the client.
 void *attendClients(void *socket) {
     int list = 0;
     int ret;
@@ -1102,7 +1204,98 @@ void *attendClients(void *socket) {
 				//printf("Response: %s\n", response);
                 //write(sock_conn, response, strlen(response));
             }
-   
+
+            else if (option == 16) {   // this option is for Chat message 
+            /*An example will be 16/Alice/Hello, mfs! 
+            where 16 is the prefix and Alice is the sender and the "Hello, mfs!" is the message*/
+                char username[username_max_length];
+                char message[write_buffer_length];
+
+                p = strtok(NULL, "/");
+                strcpy(username, p);
+                p = strtok(NULL, "/");
+                strcpy(message, p);
+
+                handle_chat_message(username, message);
+            }
+
+            else if (option == 17) {  // protocol to send the invitation
+            """
+            Client Side (User A): This user already has a list of online users, and will have a button Send Invitation to send the invitation.
+            17/UserA/UserB
+            If the user B is online, the server will send a notification to the user B.
+            17/UserA
+            Then, sends a confirmation back to the user A.
+            17/Invitation sent to UserB
+            """
+                printf("Send Invitation\n");
+                p = strtok(NULL, "/");
+                char sender[username_max_length];
+                strcpy(sender, p);  // this is the username of the sender
+
+                p = strtok(NULL, "/");
+                char invitee[username_max_length];
+                strcpy(invitee, p);  // this is the username of the invitee
+
+                // First, we have to check if the invitee is online
+                int invitee_socket = get_socket(&my_list, invitee);
+                if (invitee_socket == -1) {
+                    sprintf(response, "17/%s/Offline", invitee);
+                }
+                else {
+                    sprintf(notification, "17/%s", sender);
+                    write(invitee_socket, notification, strlen(notification));
+                    sprintf(response, "17/Invitation sent to %s", invitee);
+                }
+                write(sock_conn, response, strlen(response));
+            }
+
+            else if (option == 18) { // protocol to handle invitation response
+            """
+            Client Side (User B): A popup appears: UserA has invited you to play:
+            - if (Accept(sends(18/UserA/UserB/Accept)))
+            - else if (Decline(sends(18/UserA/UserB/Decline)))
+            Then the server process this option 18, creates a game session and notify User A.
+            """
+                printf("Handle Invitation Response\n");
+                p = strtok(NULL, "/");
+                char sender[username_max_length];
+                strcpy(sender, p);  // this is the username of the sender
+
+                p = strtok(NULL, "/");
+                char invitee[username_max_length];
+                strcpy(invitee, p);  // this is the username of the invitee
+
+                p = strtok(NULL, "/");
+                char deicision[10];
+                strcpy(deicision, p);  // this is the decision of the invitee: Accept or Decline.
+
+                int sender_socket = get_socket(&my_list, sender);
+                if (sender_socket == -1) {
+                    sprintf(response, "18/%s/Offline", sender);
+                    write(sock_conn, response, strlen(response));
+                }
+                else {
+                    if (strcmp(decision, "Accept")== 0) {
+                        sprintf(notification, "18/%s/Accepted", invitee);
+                        write(sender_socket, notification, strlen(notification));
+
+                        // Now, we add both players to a new game (room):
+                        int sender_id = get_user_id(sender, conn);
+                        int invitee_id = get_user_id(invitee, conn);
+                        int game_id = get_last_id_partida(conn) + 1;
+                        crear_sala(game_id, sender_id, response, conn);
+                        join_sala(invitee, game_id, response, conn);
+                    }
+                    else if (strcmp(decision, "Decline") == 0) {
+                        sprintf(notification, "18/%s/Declined", invitee);
+                        write(sender_socket, notification, strlen(notification));
+                    }
+                    sprintf(response, "18/Response sent to %s", sender);
+                    write(sock_conn, response, strlen(response));
+                }
+            }
+
    }
     close(sock_conn);
     mysql_close(conn);
