@@ -556,7 +556,6 @@ int remove_user_from_database(char name[username_max_length], MYSQL *conn) {
     printf("User and all related data successfully deleted.\n");
     return 0;
 }
-}
 
 
 
@@ -648,14 +647,14 @@ int is_user_logged_in(UserList *list, const char *username) {
 }
 
 
-int info_sala(char username[username_max_length], char *result, MYSQL *conn) {
+int info_sala(char idPartida[id_max_length], char *result, MYSQL *conn) {
     MYSQL_RES *res;
     MYSQL_ROW row;
     char query[sql_query_max_length];
     strcpy(result, "9/");    // empty the result (initialize)
 
     pthread_mutex_lock(&mutex);
-    sprintf(query, "SELECT duracion FROM partidas WHERE (IDJugador1 IN (SELECT ID FROM jugador WHERE username='%s'))", username);    // 0: partida no iniciada, 1: partida en curso
+    sprintf(query, "SELECT duracion FROM partidas WHERE (IDPartida=%s)", idPartida);    // 0: partida no iniciada, 1: partida en curso
     if (mysql_query (conn, query)) {
         printf ("Error: %u %s\n", mysql_errno(conn), mysql_error(conn));
         return -1;
@@ -675,11 +674,13 @@ int info_sala(char username[username_max_length], char *result, MYSQL *conn) {
     else {
         strcat(result, "1/");
     }
+	char username[username_max_length];
+	int check = getUser1FromIDPartida(idPartida, username, conn);
 	strcat(result, username);
 	strcat(result, "/");
 
     for (int i = 2; i < 5; i++) {
-        sprintf(query, "SELECT username FROM jugador WHERE (ID IN (SELECT IDJugador%i FROM partidas WHERE (IDJugador1 IN (SELECT ID FROM jugador WHERE username='%s'))))", i, username);
+        sprintf(query, "SELECT username FROM jugador WHERE (ID IN (SELECT IDJugador%i FROM partidas WHERE (IDPartida=%s)))", i, idPartida);
         if (mysql_query (conn, query)) {
             printf ("Error: %u %s\n", mysql_errno(conn), mysql_error(conn));
             break;
@@ -927,12 +928,56 @@ int findNextPlayerSpot(int idPartida, MYSQL *conn) {
     return id;
 }
 
+int isUserInGame(char username[username_max_length], int idPartida, MYSQL *conn) {
+    char query[sql_query_max_length];
+    MYSQL_RES *res;
+    MYSQL_ROW row;
+    sprintf(query, "SELECT ID FROM jugador WHERE username='%s'", username);
+    if (mysql_query(conn, query)) {
+        fprintf(stderr, "%s\n", mysql_error(conn));
+        return -1;
+    }
+    res = mysql_store_result(conn);
+    if (res == NULL) {
+        return -1;
+    }
+    row = mysql_fetch_row(res);
+    if (row == NULL) {
+        return -1;
+    }
+    int id = atoi(row[0]);
+    mysql_free_result(res);
+    sprintf(query, "SELECT IDJugador1, IDJugador2, IDJugador3, IDJugador4 FROM partidas WHERE IDPartida=%i", idPartida);
+    if (mysql_query(conn, query)) {
+        fprintf(stderr, "%s\n", mysql_error(conn));
+        return -1;
+    }
+    res = mysql_store_result(conn);
+    if (res == NULL) {
+        return -1;
+    }
+    row = mysql_fetch_row(res);
+    if (row == NULL) {
+        return -1;
+    }
+    for (int i = 1; i < 5; i++) {
+        if (row[i-1] != NULL && atoi(row[i-1]) == id) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 
 int join_sala(char username[username_max_length], int idPartida, char *response, MYSQL *conn) {
     MYSQL_RES *res;
     MYSQL_ROW row;
     char query[sql_query_max_length];
     pthread_mutex_lock(&mutex);
+    if (isUserInGame(username, idPartida, conn) == 1) {
+        sprintf(response, "14/Error");
+        return -1;
+    }
     int id = get_user_id(username, conn);
     int player = findNextPlayerSpot(idPartida, conn);
     if (player == -1) {
@@ -1258,9 +1303,7 @@ void *attendClients(void *socket) {
             else if (option == 9) {         // Informacion de la sala
 				printf("Info Lobby\n");
 				p = strtok(NULL, "/");
-				getUser1FromIDPartida(p, username, conn);
-                printf("User: %s\n", username);
-				int res = info_sala(username, response, conn);
+				int res = info_sala(p, response, conn);
                 printf("Response: %s\n", response);
 				write(sock_conn, response, strlen(response));
             }
@@ -1387,14 +1430,14 @@ void *attendClients(void *socket) {
             }
 
             else if (option == 17) {  // protocol to send the invitation
-            """
+            /*
             Client Side (User A): This user already has a list of online users, and will have a button Send Invitation to send the invitation.
             17/UserA/UserB
             If the user B is online, the server will send a notification to the user B.
             17/UserA
             Then, sends a confirmation back to the user A.
             17/Invitation sent to UserB
-            """
+            */
                 printf("Send Invitation\n");
                 p = strtok(NULL, "/");
                 char sender[username_max_length];
@@ -1418,12 +1461,12 @@ void *attendClients(void *socket) {
             }
 
             else if (option == 18) { // protocol to handle invitation response
-            """
+            /*
             Client Side (User B): A popup appears: UserA has invited you to play:
             - if (Accept(sends(18/UserA/UserB/Accept)))
             - else if (Decline(sends(18/UserA/UserB/Decline)))
             Then the server process this option 18, creates a game session and notify User A.
-            """
+            */
                 printf("Handle Invitation Response\n");
                 p = strtok(NULL, "/");
                 char sender[username_max_length];
@@ -1434,8 +1477,8 @@ void *attendClients(void *socket) {
                 strcpy(invitee, p);  // this is the username of the invitee
 
                 p = strtok(NULL, "/");
-                char deicision[10];
-                strcpy(deicision, p);  // this is the decision of the invitee: Accept or Decline.
+                char decision[10];
+                strcpy(decision, p);  // this is the decision of the invitee: Accept or Decline.
 
                 int sender_socket = get_socket(&my_list, sender);
                 if (sender_socket == -1) {

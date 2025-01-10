@@ -85,7 +85,7 @@ public class preguntaMenu : MonoBehaviour
             if ( timer <= 0)
             {
                 GlobalVariables.ruletaLock = false;
-                SceneManager.LoadSceneAsync("Ruleta");
+                SceneManager.LoadScene("Ruleta");
             }
         }
         // Sin contestar
@@ -96,7 +96,7 @@ public class preguntaMenu : MonoBehaviour
             {
                 seconds--;
 
-                // Se acabó el tiempo
+                // Se acabï¿½ el tiempo
                 if (seconds < 0)
                 {
                     block = true;

@@ -35,6 +35,7 @@ public class mainMenuControlls : MonoBehaviour
         if (!GlobalVariables.joinedGame)
         {
             string response = GlobalVariables.SendRequest($"15/{GlobalVariables.currentUsername}"); // Crear sala
+            Debug.Log($"New game: {response}");
             GlobalVariables.idPartida = Convert.ToInt32(response.Split("/")[1]);
             GlobalVariables.players = new List<string>();
             GlobalVariables.players.Add(GlobalVariables.currentUsername);
@@ -100,7 +101,7 @@ public class mainMenuControlls : MonoBehaviour
         }
         GlobalVariables.SendRequest($"12/{GlobalVariables.idPartida}"); // Eliminar sala
         GlobalVariables.inviteJoin = "Join";
-        SceneManager.LoadSceneAsync("InviteMenu");
+        SceneManager.LoadScene("InviteMenu");
     }
 
     public void inviteClicked()
@@ -112,7 +113,7 @@ public class mainMenuControlls : MonoBehaviour
             return;
         }
         GlobalVariables.inviteJoin = "Invite";
-        SceneManager.LoadSceneAsync("InviteMenu");
+        SceneManager.LoadScene("InviteMenu");
     }
 
     // Inicia el juego
@@ -131,7 +132,7 @@ public class mainMenuControlls : MonoBehaviour
                 if (response == "10/Game Started")
                 {
                     GlobalVariables.loadScores();
-                    SceneManager.LoadSceneAsync("Ruleta");
+                    SceneManager.LoadScene("Ruleta");
                 }
             }
             else
@@ -146,7 +147,7 @@ public class mainMenuControlls : MonoBehaviour
     {
         timer = 5;
 
-        Debug.Log("Escuchando servidor");
+        Debug.Log("Escuchando servidor ID: " + GlobalVariables.idPartida);
         string response = GlobalVariables.SendRequest($"9/{GlobalVariables.idPartida}"); // Solicitar lista de jugadores en la sala + juego iniciado -> 0: no , 1: si / jugadores
 
         Debug.Log(response);
@@ -154,7 +155,7 @@ public class mainMenuControlls : MonoBehaviour
         if (response.Split("/")[1] == "1")
         {
             GlobalVariables.loadScores();
-            SceneManager.LoadSceneAsync("Ruleta");
+            SceneManager.LoadScene("Ruleta");
         }
 
         // Actualiza la lista de jugadores en la sala
@@ -169,6 +170,6 @@ public class mainMenuControlls : MonoBehaviour
     {
         GlobalVariables.SendRequest($"0/{GlobalVariables.currentUsername}/{GlobalVariables.idPartida}"); // Desconectar
         GlobalVariables.joinedGame = false;
-        SceneManager.LoadSceneAsync("LoginMenu");
+        SceneManager.LoadScene("LoginMenu");
     }
 }

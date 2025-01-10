@@ -47,7 +47,7 @@ public class endGame : MonoBehaviour
     {
         GlobalVariables.initializeVariables();
         GlobalVariables.joinedGame = false;
-        SceneManager.LoadSceneAsync("MainMenu");
+        SceneManager.LoadScene("MainMenu");
     }
 
 }
