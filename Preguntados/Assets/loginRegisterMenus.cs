@@ -17,6 +17,7 @@ public class loginRegisterMenus : MonoBehaviour
 
     void Start()
     {
+        GlobalVariables.games = new List<int>();
         // Para saber si el menu se carga en una sala de juego
         GlobalVariables.joinedGame = false;
 
@@ -76,7 +77,7 @@ public class loginRegisterMenus : MonoBehaviour
         }
     }
 
-    // Inicia sesión
+    // Inicia sesiï¿½n
     public void login()
     {
         if (setVariables(true))

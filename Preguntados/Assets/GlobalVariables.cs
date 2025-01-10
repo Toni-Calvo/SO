@@ -11,11 +11,13 @@ public class GlobalVariables : MonoBehaviour
     /*
      Este archivo sirve para funciones y variables necesitadas en todas las escenas del juego 
     */
-
+    
     private const string serverIP = "192.168.56.102";
     private const int serverPort = 8080;
+    public static int maxRacha = 1; // Entra a ruleta
+    public static int maxPuntuacion = 1; // Entra a ruleta
     private static TcpClient client;
-
+    public static List<int> games; // Entra a MainMenu
     public static string registeredUsername; // Entra a login
     public static string currentUsername; // Entra a mainMenu
     public static bool joinedGame; // Entra a mainMenu
@@ -36,6 +38,8 @@ public class GlobalVariables : MonoBehaviour
     public static int turn; // Entra a ruleta
     public static int racha; // Entra a ruleta
     public static bool ruletaLock; // Entra a ruleta
+    public static string inviteJoin; // Entra a mainMenu
+    public static string ganador; // Entra a endGame
 
     // Inicia todas las puntuaciones de los jugadores en falso (inicio de partida)
     public static void loadScores()
@@ -57,6 +61,16 @@ public class GlobalVariables : MonoBehaviour
         GlobalVariables.cathegories.Add("Entretenimiento");
     }
 
+    // Inicializacion del turno, estado del juego, racha y puntuacion maxima
+    public static void initializeVariables()
+    {
+        GlobalVariables.inGame = false;
+        GlobalVariables.turn = 0;
+        GlobalVariables.racha = 0;
+        GlobalVariables.correct = false;
+        GlobalVariables.ruletaLock = false;
+    }
+
     // Envia una solicitud al servidor y recibe una respuesta
     public static string SendRequest(string request)
     {
@@ -75,7 +89,7 @@ public class GlobalVariables : MonoBehaviour
             int bytesRead = stream.Read(buffer, 0, buffer.Length);
             string response = Encoding.ASCII.GetString(buffer, 0, bytesRead);
 
-            // Cerrar conexión
+            // Cerrar conexiï¿½n
             stream.Close();
             client.Close();
 

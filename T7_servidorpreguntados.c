@@ -20,7 +20,7 @@
 
 /* Defining the constants, these values can be changed, that's why we use constants because if we want to change any value, 
 we should only have to change the constant*/
-#define PORT 8080                     // Port number for the server.  for version 2 of the project, we will use this port number.
+#define PORT 50080                     // Port number for the server..
 
 #define id_max_length 10
 #define email_max_length 50
@@ -37,10 +37,10 @@ we should only have to change the constant*/
 #define write_buffer_length 512
 // buffer sizes are used to store data temporarily when reading from or writing to sockets 
 
-#define database_name "bd"
+#define database_name "T7BBDD"
 #define database_username "root"
 #define database_password "mysql"
-#define database_host "localhost"   // will be changed for version3 to "shiva2.upc.edu".
+#define database_host "shiva2.upc.es"   // will be changed for version3 to "shiva2.upc.edu".
 
 
 // Defining the user structure and the user list structure.
@@ -151,40 +151,8 @@ void user_list(char *result) {
         sprintf(result, "%s%s/", result, my_list.users[i].username);
     }
     result[strlen(result) - 1] = '\0'; // remove the last '/'
-    printf("\nResult: %s\n", result);
+    printf("Result: %s\n", result);
     pthread_mutex_unlock(&mutex);
-}
-
-
-// returns the IDs of all the games you can join
-int get_games(char *result, MYSQL *conn) {
-	char pre[write_buffer_length];
-	strcpy(pre, "");
-	pthread_mutex_lock(&mutex);
-	char query[sql_query_max_length];
-	MYSQL_RES *res;
-	MYSQL_ROW row;
-	sprintf(query, "SELECT IDPartida FROM partidas WHERE Duracion = 0");
-	if (mysql_query(conn, query)) {
-		fprintf(stderr, "%s\n", mysql_error(conn));
-		return -1;
-	}
-	res = mysql_store_result(conn);
-	if (res == NULL) {
-		return -1;           
-	}
-	row = mysql_fetch_row(res);
-	int counter = 0;
-	while (row != NULL) {
-		printf("Partida %s encontrada\n", row[0]);
-		sprintf(pre, "%s%s/", pre, row[0]);
-		row = mysql_fetch_row(res);
-		counter++;
-	}
-	mysql_free_result(res);
-	sprintf(result, "4/%i/%s", counter, pre);
-	pthread_mutex_unlock(&mutex);
-	return 0;
 }
 
 
@@ -242,80 +210,6 @@ int correct_user_pass(char name[username_max_length], char password[password_max
     }
     mysql_free_result(res);
     return 0;       // username & password correct
-}
-
-// removes a user from a game's lobby
-int removeFromGame(char user[username_max_length], char idP[id_max_length], MYSQL *conn) {
-	char query[sql_query_max_length];
-	MYSQL_RES *res;
-	MYSQL_ROW row;
-	pthread_mutex_lock(&mutex);
-	for (int i = 1; i != 5; i++) {
-		sprintf(query, "UPDATE partidas SET IDJugador%i = NULL WHERE IDPartida = %s AND (IDJugador%i IN (SELECT ID FROM jugador WHERE username='%s'));", i, idP, i, user);
-		if (mysql_query(conn, query)) {
-			fprintf(stderr, "%s\n", mysql_error(conn));
-			return -1;
-		}
-	}
-	mysql_free_result(res);
-	printf("Removed propperly\n");
-	reorderLobby(idP, &conn);
-	pthread_mutex_unlock(&mutex);
-	return 0;
-}
-
-
-int reorderLobby(char idP[id_max_length], MYSQL *conn) {
-	char query[sql_query_max_length];
-	MYSQL_RES *res;
-	MYSQL_ROW row;
-	int IDs[3];
-	int num = 0;
-	printf("IDs Created\n");
-	// Guardar los jugadores de la sala
-	for (int i = 1; i != 5; i++) {
-		sprintf(query, "SELECT IDJugador%i FROM partidas WHERE IDPartida=%s", i, idP);
-		if (mysql_query(conn, query)) {
-			fprintf(stderr, "%s\n", mysql_error(conn));
-			return -1;
-		}
-		res = mysql_store_result(conn);
-		if (res != NULL) {
-			row = mysql_fetch_row(res);
-			if (row != NULL) {
-				IDs[num] = atoi(row[0]);
-				printf("ID assigned\n");
-				num++;
-			}
-		}
-		printf("ID empty\n");
-		mysql_free_result(res);
-	}
-	// delete lobby
-	if (num == 0) {
-		printf("Deletion\n");
-		delete_sala(idP, conn);
-	}
-	// Reordenar usando la lista
-	for (int i = 1; i != num + 1; i++) {
-		printf("Reorder\n");
-		sprintf(query, "UPDATE partidas SET IDJugador%i = %i WHERE IDPartida = %s", i, IDs[i], idP);
-		if (mysql_query(conn, query)) {
-			fprintf(stderr, "%s\n", mysql_error(conn));
-			return -1;
-		}
-	}
-	// Borrar el resto de valores
-	for (int i = num + 1; i != 5; i++) {
-		printf("Erased\n");
-		sprintf(query, "UPDATE partidas SET IDJugador%i = NULL WHERE IDPartida = %s", i, idP);
-		if (mysql_query(conn, query)) {
-			fprintf(stderr, "%s\n", mysql_error(conn));
-			return -1;
-		}
-	}
-	printf("Finished\n");
-	return 0;
 }
 
 
@@ -481,81 +375,18 @@ int remove_user_from_database(char name[username_max_length], MYSQL *conn) {
     MYSQL_RES *res;
     MYSQL_ROW row;
     char query[sql_query_max_length];
-    int user_id;
-
-    if (user_exists(name, conn) == -1) {
-        printf("User does not exist, cannot delete.\n");
+    if (user_exists(name, conn) == 0) {
+        sprintf(query, "DELETE FROM jugador WHERE username = '%s'", name);
+        if (mysql_query(conn, query) != 0) {
+            printf("Error: %u %s\n", mysql_errno(conn), mysql_error(conn));
+            return -1;
+        }
+        return 0;
+    }
+    else {
+        printf("User does not exist therefore can not be eliminated.\n");
         return -1;
     }
-
-    //Get the user ID
-    sprintf(query, "SELECT ID FROM jugador WHERE username = '%s'", name);
-    if (mysql_query(conn, query) != 0) {
-        printf("Error fetching user ID: %u %s\n", mysql_errno(conn), mysql_error(conn));
-        return -1;
-    }
-    res = mysql_store_result(conn);
-    if ((row = mysql_fetch_row(res)) == NULL) {
-        printf("Error: User ID could not be retrieved.\n");
-        mysql_free_result(res);
-        return -1;
-    }
-    user_id = atoi(row[0]);
-    mysql_free_result(res);
-
-    //Delete related data from "RelacionIDsPartidas"
-    sprintf(query, "DELETE FROM RelacionIDsPartidas WHERE IDJugador = %d", user_id);
-    if (mysql_query(conn, query) != 0) {
-        printf("Error deleting from RelacionIDsPartidas: %u %s\n", mysql_errno(conn), mysql_error(conn));
-        return -1;
-    }
-
-    //Delete the user references in "partidas"
-    sprintf(query, "UPDATE partidas SET IDJugador1 = NULL WHERE IDJugador1 = %d", user_id);
-    if (mysql_query(conn, query) != 0) {
-        printf("Error updating partidas (IDJugador1): %u %s\n", mysql_errno(conn), mysql_error(conn));
-        return -1;
-    }
-    sprintf(query, "UPDATE partidas SET IDJugador2 = NULL WHERE IDJugador2 = %d", user_id);
-    if (mysql_query(conn, query) != 0) {
-        printf("Error updating partidas (IDJugador2): %u %s\n", mysql_errno(conn), mysql_error(conn));
-        return -1;
-    }
-    sprintf(query, "UPDATE partidas SET IDJugador3 = NULL WHERE IDJugador3 = %d", user_id);
-    if (mysql_query(conn, query) != 0) {
-        printf("Error updating partidas (IDJugador3): %u %s\n", mysql_errno(conn), mysql_error(conn));
-        return -1;
-    }
-    sprintf(query, "UPDATE partidas SET IDJugador4 = NULL WHERE IDJugador4 = %d", user_id);
-    if (mysql_query(conn, query) != 0) {
-        printf("Error updating partidas (IDJugador4): %u %s\n", mysql_errno(conn), mysql_error(conn));
-        return -1;
-    }
-
-    //Delete games with no players left
-    sprintf(query, "DELETE FROM partidas WHERE IDJugador1 IS NULL AND IDJugador2 IS NULL AND IDJugador3 IS NULL AND IDJugador4 IS NULL");
-    if (mysql_query(conn, query) != 0) {
-        printf("Error deleting empty partidas: %u %s\n", mysql_errno(conn), mysql_error(conn));
-        return -1;
-    }
-
-    //Remove user from conectados
-    sprintf(query, "DELETE FROM conectados WHERE nombre = '%s'", name);
-    if (mysql_query(conn, query) != 0) {
-        printf("Error deleting from conectados: %u %s\n", mysql_errno(conn), mysql_error(conn));
-        return -1;
-    }
-
-    //Delete user from jugador
-    sprintf(query, "DELETE FROM jugador WHERE ID = %d", user_id);
-    if (mysql_query(conn, query) != 0) {
-        printf("Error deleting from jugador: %u %s\n", mysql_errno(conn), mysql_error(conn));
-        return -1;
-    }
-
-    printf("User and all related data successfully deleted.\n");
-    return 0;
-}
 }
 
 
@@ -928,12 +759,13 @@ int findNextPlayerSpot(int idPartida, MYSQL *conn) {
 }
 
 
-int join_sala(char username[username_max_length], int idPartida, char *response, MYSQL *conn) {
+int join_sala(char username[username_max_length], char userPartida[username_max_length], char *response, MYSQL *conn) {
     MYSQL_RES *res;
     MYSQL_ROW row;
     char query[sql_query_max_length];
     pthread_mutex_lock(&mutex);
     int id = get_user_id(username, conn);
+    int idPartida = find_sala(userPartida, conn);
     int player = findNextPlayerSpot(idPartida, conn);
     if (player == -1) {
         sprintf(response, "14/Error");
@@ -949,8 +781,8 @@ int join_sala(char username[username_max_length], int idPartida, char *response,
     return 0;
 }
 
+
 int deletePartidas() {
-	printf("Borrando Partidas\n");
     MYSQL *conn;
     conn = mysql_init(NULL);
 
@@ -970,53 +802,11 @@ int deletePartidas() {
         printf("Error: %u %s\n", mysql_errno(conn), mysql_error(conn));
         return -1;
     }
-	
-	printf("Partidas Borrada\n");
     return 0;
 }
 
 // this function is to get the petition from the client.
 
-// Function to broadcast chat messages to users within the same *sala*
-void handle_chat_message(const char *sender_username, const char *message) {
-    MYSQL *conn;
-    conn = mysql_init(NULL);
-    if (conn == NULL) {
-        printf("Error %u: %s\n", mysql_errno(conn), mysql_error(conn));
-        exit(1);
-    }
-
-    conn = mysql_real_connect(conn, database_host, database_username, database_password, database_name, 0, NULL, 0);
-    if (conn == NULL) {
-        printf("Error %u: %s\n", mysql_error(conn));
-        return;
-    }
-
-    // Find the room ID for the sender to broadcast the message to the correct room
-    int sala_id = find_sala(sender_username, conn);
-    if (sala_id == -1) {
-        printf("User %s is not in a room\n", sender_username);
-        return;
-    }
-
-    /*IRC-style formatted message that includes sender’s username, message type, and content
-    It is not necessary to know how this part of the code, because this is a protocol to chat,
-    since we are using server (later, we'll be using SHIVA) this makes our task much easier.*/
-    char formatted_message[write_buffer_length];
-    snprintf(formatted_message, sizeof(formatted_message), ":%s PRIVMSG #%d :%s", sender_username, sala_id, message);   // snprintf is used to avoid buffer overflow
-    pthread_mutex_lock(&mutex);
-    for (int i = 0; i < my_list.user_count; i++) {
-        if (find_sala(my_list.users[i].username, conn) == sala_id) {
-            write(my_list.users[i].socket, formatted_message, strlen(formatted_message));
-        }
-    }
-    pthread_mutex_unlock(&mutex);
-    mysql_close(conn);
-}
-
-
-
-// this function is to get the petition from the client.
 void *attendClients(void *socket) {
     int list = 0;
     int ret;
@@ -1065,7 +855,7 @@ void *attendClients(void *socket) {
            and the loop breaks.*/
         petition[ret] = '\0';
         
-        printf("Petition number: ", petition);
+        printf("Petition n�%s: ", petition);
 
             char *p = strtok(petition, "/");
             int option = atoi(p);
@@ -1087,12 +877,7 @@ void *attendClients(void *socket) {
                 int i = 0;
                 int sock[3000];
 				p = strtok(NULL, "/");
-				strcpy(response, "");
-				strcpy(username, p);
-				p = strtok(NULL, "/");
-				strcpy(idPartida, p);
-				printf("Saved All Variables\n");
-				removeFromGame(username, idPartida, conn);
+				delete_sala(p, conn);
                 int remove = remove_user(&my_list, sock_conn);
 
                 if (remove == 0) {          // Handle user disconnect
@@ -1110,8 +895,7 @@ void *attendClients(void *socket) {
                     }
                     */
                 } 
-				strcpy(response, "");
-				write(sock_conn, response, strlen(response));
+
             }
 
             else if (option == 1) {       // Handle Login (connection)
@@ -1141,19 +925,6 @@ void *attendClients(void *socket) {
                 }
                 write(sock_conn, response, strlen(response));
             }
-			
-			else if (option == 2) {			// Salir de la sala
-				printf("Saliendo de la sala\n");
-				strcpy(response, "");
-				p = strtok(NULL, "/");
-				strcpy(username, p);
-				
-				p = strtok(NULL, "/");
-				int idP = atoi(p);
-				
-				removeFromGame(username, idP, conn);
-				write(sock_conn, response, strlen(response));
-			}
 
             else if (option == 3) {        // Handle user registration
 				printf("Register\n");
@@ -1194,22 +965,6 @@ void *attendClients(void *socket) {
                 printf("Response: %s\n", response);
                 write(sock_conn, response, strlen(response));
             }
-			
-			
-			else if (option == 4) {				// Lista de partidas
-				printf("Lista de partidas\n");
-				strcpy(response, "");
-				int cond = get_games(&response, conn);
-				if (cond == 0) {
-					printf("%s\n", response);
-					write(sock_conn, response, strlen(response));
-				}
-				else {
-					strcpy(response, "4/fallo");
-					printf("%s\n", response);
-					write(sock_conn, response, strlen(response));
-				}
-			}
 
             
             else if (option == 5) {             // Update turn
@@ -1312,10 +1067,10 @@ void *attendClients(void *socket) {
 				printf("Join Lobby\n");
                 p = strtok(NULL, "/");
                 strcpy(username, p);
+                char userPartida[username_max_length];
                 p = strtok(NULL, "/");
-				int idP = atoi(p);
-				printf("User: %s\nGameID: %i\n", username, idP);
-                join_sala(username, idP, response, conn);
+                strcpy(userPartida, p);
+                join_sala(username, userPartida, response, conn);
                 write(sock_conn, response, strlen(response));
             }
 
@@ -1371,98 +1126,7 @@ void *attendClients(void *socket) {
 				//printf("Response: %s\n", response);
                 //write(sock_conn, response, strlen(response));
             }
-
-            else if (option == 16) {   // this option is for Chat message 
-            /*An example will be 16/Alice/Hello, mfs! 
-            where 16 is the prefix and Alice is the sender and the "Hello, mfs!" is the message*/
-                char username[username_max_length];
-                char message[write_buffer_length];
-
-                p = strtok(NULL, "/");
-                strcpy(username, p);
-                p = strtok(NULL, "/");
-                strcpy(message, p);
-
-                handle_chat_message(username, message);
-            }
-
-            else if (option == 17) {  // protocol to send the invitation
-            """
-            Client Side (User A): This user already has a list of online users, and will have a button Send Invitation to send the invitation.
-            17/UserA/UserB
-            If the user B is online, the server will send a notification to the user B.
-            17/UserA
-            Then, sends a confirmation back to the user A.
-            17/Invitation sent to UserB
-            """
-                printf("Send Invitation\n");
-                p = strtok(NULL, "/");
-                char sender[username_max_length];
-                strcpy(sender, p);  // this is the username of the sender
-
-                p = strtok(NULL, "/");
-                char invitee[username_max_length];
-                strcpy(invitee, p);  // this is the username of the invitee
-
-                // First, we have to check if the invitee is online
-                int invitee_socket = get_socket(&my_list, invitee);
-                if (invitee_socket == -1) {
-                    sprintf(response, "17/%s/Offline", invitee);
-                }
-                else {
-                    sprintf(notification, "17/%s", sender);
-                    write(invitee_socket, notification, strlen(notification));
-                    sprintf(response, "17/Invitation sent to %s", invitee);
-                }
-                write(sock_conn, response, strlen(response));
-            }
-
-            else if (option == 18) { // protocol to handle invitation response
-            """
-            Client Side (User B): A popup appears: UserA has invited you to play:
-            - if (Accept(sends(18/UserA/UserB/Accept)))
-            - else if (Decline(sends(18/UserA/UserB/Decline)))
-            Then the server process this option 18, creates a game session and notify User A.
-            """
-                printf("Handle Invitation Response\n");
-                p = strtok(NULL, "/");
-                char sender[username_max_length];
-                strcpy(sender, p);  // this is the username of the sender
-
-                p = strtok(NULL, "/");
-                char invitee[username_max_length];
-                strcpy(invitee, p);  // this is the username of the invitee
-
-                p = strtok(NULL, "/");
-                char deicision[10];
-                strcpy(deicision, p);  // this is the decision of the invitee: Accept or Decline.
-
-                int sender_socket = get_socket(&my_list, sender);
-                if (sender_socket == -1) {
-                    sprintf(response, "18/%s/Offline", sender);
-                    write(sock_conn, response, strlen(response));
-                }
-                else {
-                    if (strcmp(decision, "Accept")== 0) {
-                        sprintf(notification, "18/%s/Accepted", invitee);
-                        write(sender_socket, notification, strlen(notification));
-
-                        // Now, we add both players to a new game (room):
-                        int sender_id = get_user_id(sender, conn);
-                        int invitee_id = get_user_id(invitee, conn);
-                        int game_id = get_last_id_partida(conn) + 1;
-                        crear_sala(game_id, sender_id, response, conn);
-                        join_sala(invitee, game_id, response, conn);
-                    }
-                    else if (strcmp(decision, "Decline") == 0) {
-                        sprintf(notification, "18/%s/Declined", invitee);
-                        write(sender_socket, notification, strlen(notification));
-                    }
-                    sprintf(response, "18/Response sent to %s", sender);
-                    write(sock_conn, response, strlen(response));
-                }
-            }
-
+   
    }
     close(sock_conn);
     mysql_close(conn);
@@ -1497,10 +1161,11 @@ int main() {
         perror("Failed to listen");
         exit(EXIT_FAILURE);
     }
-    
-	deletePartidas();
 
-    printf("Waiting for connections on port %d...\n", PORT);
+	deletePartidas();
+ 
+	printf("Waiting for connections on port %d...\n", PORT);
+
 
     while (1) {
         new_sock = accept(sockfd, (struct sockaddr *)&client_addr, &addr_len);
