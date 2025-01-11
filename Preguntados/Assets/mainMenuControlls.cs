@@ -16,6 +16,9 @@ public class mainMenuControlls : MonoBehaviour
     public TMP_Text info;
     private float timer;
     public TMP_Text GameIDLbl;
+    public TMP_Text chat;
+    public TMP_InputField chatInput;
+    //public Thread atender;
 
 
     void Start()
@@ -50,6 +53,9 @@ public class mainMenuControlls : MonoBehaviour
 
     void Update()
     {
+        if (Input.GetKeyDown(KeyCode.Return))
+            SendChat();
+
         timer -= Time.deltaTime;
         // Escucha del servidor
         if (timer <= 0)
@@ -87,6 +93,19 @@ public class mainMenuControlls : MonoBehaviour
             p2.text = "";
             p3.text = "";
             p4.text = "";
+        }
+    }
+
+    // Envia un mensaje al chat
+    private void SendChat(){
+        if (chatInput.text != "" || chatInput.text != " ")
+        {
+            for (int i = 0; i < GlobalVariables.players.Count; i++)
+            {
+                Debug.Log($"16/{GlobalVariables.currentUsername}/{GlobalVariables.players[i]}/{chatInput.text}");
+                GlobalVariables.SendRequest($"16/{GlobalVariables.currentUsername}/{GlobalVariables.players[i]}/{chatInput.text}");
+            }
+            chatInput.text = "";
         }
     }
 

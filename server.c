@@ -15,6 +15,7 @@
 #include <pthread.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <ctype.h>
 
 
 
@@ -31,6 +32,7 @@ we should only have to change the constant*/
 #define email_min_length 5
 #define username_min_length 5
 #define password_min_length 5
+#define message_max_length 128
 
 #define sql_query_max_length 1024
 #define read_buffer_length 512
@@ -121,9 +123,22 @@ int get_socket(UserList *list, char user[username_max_length]) {
     pthread_mutex_lock(&mutex);
     int found = 0;
     int i = 0;
+
+    char lUser[username_max_length];
+    for (int j = 0; j < strlen(user); j++) {
+        lUser[j] = tolower(user[j]);
+    }
+    
+    char lUser2[username_max_length];
     while (i < list->user_count && !found) {
-        if (strcmp(list->users[i].username, user) == 0) {
+        strcpy(lUser2, "");
+        for (int j = 0; j < strlen(list->users[i].username); j++) {
+            lUser2[j] = tolower(list->users[i].username[j]);
+        }
+
+        if (strcmp(lUser2, lUser) == 0) {
             found = 1;
+            printf("%s's socket found.\n", user);
         }
         else {
             i++;
@@ -134,6 +149,7 @@ int get_socket(UserList *list, char user[username_max_length]) {
         return list->users[i].socket;
     }
     else {
+        printf("%s's socket not found.\n", user);
         pthread_mutex_unlock(&mutex);
         return -1;
     }
@@ -1402,31 +1418,43 @@ void *attendClients(void *socket) {
 				} else {
 					fprintf(stderr, "Error: Socket de conexion no valido\n");
 				}
-                //p = strtok(NULL, "/");
-                //strcpy(username, p);
-				//printf("User: %s.\nResponse: '%s'\n", username, response);
-                //pthread_mutex_lock(&mutex);
-                //int idP = get_last_id_partida(conn);
-                //int idU = get_user_id(username, conn);
-				//printf("User ID: %i, Game ID: %i\n", idU, idP);
-                //int i = crear_sala(idP, idU, response, conn);
-                //pthread_mutex_unlock(&mutex);
-				//printf("Response: %s\n", response);
-                //write(sock_conn, response, strlen(response));
             }
 
-            else if (option == 16) {   // this option is for Chat message 
-            /*An example will be 16/Alice/Hello, mfs! 
-            where 16 is the prefix and Alice is the sender and the "Hello, mfs!" is the message*/
-                char username[username_max_length];
-                char message[write_buffer_length];
+            else if (option == 16) {  // Protocol for chat: 16/sender/roomID/message
+				p = strtok(NULL, "/");
+				char sender[username_max_length];
+				strcpy(sender, p);  // this is the username of the sender
 
                 p = strtok(NULL, "/");
-                strcpy(username, p);
-                p = strtok(NULL, "/");
-                strcpy(message, p);
+                char reciever[username_max_length];  
+                strcpy(reciever, p);  // this is the username of the reciever
 
-                handle_chat_message(username, message);
+                p = strtok(NULL, "/");
+				char message[message_max_length];
+				strcpy(message, p);  // this is the message
+
+                printf("Chat message from %s to %s: %s\n", sender, reciever, message);
+                strcpy(response, "16/Message sent");
+                write(sock_conn, response, strlen(response));
+
+				for (int i = 0; i < my_list.user_count; i++) {
+					printf("User: %s; Socket: %i\n", my_list.users[i].username, my_list.users[i].socket);
+				}
+				int sender_socket = get_socket(&my_list, sender);
+				int reciever_socket = get_socket(&my_list, reciever);
+
+                printf("Sender socket: %d\n", sender_socket);
+                printf("Reciever socket: %d\n", reciever_socket);
+                
+                pthread_mutex_lock(&mutex);
+                char notification[write_buffer_length];
+                sprintf(notification, "16/%s/%s", sender, message);
+                printf("Sending to %s; message: %s\n", reciever, notification);
+                write(reciever_socket, notification, strlen(notification));
+                
+                printf("Message sent\n");
+				
+                pthread_mutex_unlock(&mutex);
             }
 
             else if (option == 17) {  // protocol to send the invitation
