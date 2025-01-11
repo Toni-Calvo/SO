@@ -1372,19 +1372,41 @@ void *attendClients(void *socket) {
                 //write(sock_conn, response, strlen(response));
             }
 
-            else if (option == 16) {   // this option is for Chat message 
-            /*An example will be 16/Alice/Hello, mfs! 
-            where 16 is the prefix and Alice is the sender and the "Hello, mfs!" is the message*/
-                char username[username_max_length];
-                char message[write_buffer_length];
+            else if (option == 16) {  // Protocol for chat: 16/sender/message
+                    p = strtok(NULL, "/");
+                    char sender[username_max_length];
+                    strcpy(sender, p);  // this is the username of the sender
 
-                p = strtok(NULL, "/");
-                strcpy(username, p);
-                p = strtok(NULL, "/");
-                strcpy(message, p);
+                    p = strtok(NULL, "/");
+                    char message[message_max_length];
+                    strcpy(message, p);  // this is the message
 
-                handle_chat_message(username, message);
-            }
+                    
+                    ptherad_mutex_lock(&mutex);
+                    int sender_socket = get_socket(&my_list, sender);
+                    pthread_mutex_unlock(&mutex);
+
+                    // We need the Room ID of the sender to send the message to all players in the room.
+                    pthread_mutex_lock(&mutex);
+                    int room_id = find_sala(sender, conn);
+                    if (room_id == -1) {
+                        char error_message[] = "16/Error: Sender is not in a room";
+                        write(sender_socket, error_message, strlen(error_message));
+                        return;
+                    }               
+                    pthread_mutex_unlock(&mutex);
+
+
+                    for (int i = 0; i < my_list.user_count; i++) {
+                        int user_socket = my_list.users[i].socket;
+                        int user_room = find_sala(my_list.users[i].username, conn);
+                        if (user_room == room_id) {
+                            char notification[write_buffer_length];
+                            sprintf(notification, "16/%s/%s", sender, message);
+                            write(user_socket, notification, strlen(notification));
+                        }
+                    }
+                }
 
             else if (option == 17) {  // protocol to send the invitation
             """
