@@ -37,7 +37,7 @@ we should only have to change the constant*/
 #define write_buffer_length 512
 // buffer sizes are used to store data temporarily when reading from or writing to sockets 
 
-#define database_name "T7BBDD"
+#define database_name "T7_BBDD"
 #define database_username "root"
 #define database_password "mysql"
 #define database_host "shiva2.upc.es"   // will be changed for version3 to "shiva2.upc.edu".
