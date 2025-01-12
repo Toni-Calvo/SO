@@ -28,6 +28,7 @@ we should only have to change the constant*/
 #define username_max_length 30
 #define password_max_length 30
 #define max_users 256
+#define max_messages 256
 
 #define email_min_length 5
 #define username_min_length 5
@@ -60,10 +61,29 @@ typedef struct {
 it will be enough, because the detailed information of a user(if it exists) will be saved
 in the database, particularly in the Table "jugador". */
 
+typedef struct {
+    char sender[username_max_length];
+    char message[message_max_length];
+} Message;
+
+
+typedef struct {
+    char user[username_max_length];
+    Message messages[max_messages];
+    int message_count;
+} Inbox;
+
+typedef struct {
+    Inbox inboxes[max_users];
+    int inbox_count;
+} InboxList;
+
 
 UserList my_list;           
 int socket_num;             //Server's socket number.
 int sockets[256];
+
+InboxList allInbox;
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;      //Mutex for thread safety.
 pthread_t threads[256];                                 //Threads for each user.
@@ -1076,6 +1096,31 @@ void handle_chat_message(const char *sender_username, const char *message) {
 }
 
 
+int get_inbox_index(InboxList *list, char username[username_max_length]) {
+    char lUser[username_max_length];
+    for (int j = 0; j < strlen(username); j++) {
+        lUser[j] = tolower(username[j]);
+    }
+    
+    char lUser2[username_max_length];
+    for (int i = 0; i < list->inbox_count; i++) {
+        strcpy(lUser2, "");
+        for (int j = 0; j < strlen(list->inboxes[i].user); j++) {
+            lUser2[j] = tolower(list->inboxes[i].user[j]);
+        }
+		
+		printf("Comparing %s and %s\n", lUser, lUser2);
+        if (strcmp(lUser, lUser2) == 0) {
+            printf("User found in inbox %i\n", i);
+            return i;
+        }
+    }
+    printf("Inbox Not Found\n");
+	printf("Total Inbox: %i\n", list->inbox_count);
+    return -1;
+}
+
+
 
 // this function is to get the petition from the client.
 void *attendClients(void *socket) {
@@ -1420,41 +1465,41 @@ void *attendClients(void *socket) {
 				}
             }
 
-            else if (option == 16) {  // Protocol for chat: 16/sender/roomID/message
+            else if (option == 16) {  // Protocol for chat: 16/sender/receiver/message
 				p = strtok(NULL, "/");
-				char sender[username_max_length];
-				strcpy(sender, p);  // this is the username of the sender
+                char sender[username_max_length];
+                strcpy(sender, p);  // this is the username of the sender
+                
+                p = strtok(NULL, "/");
+                char receiver[username_max_length];
+                strcpy(receiver, p);  // this is the username of the receiver
 
                 p = strtok(NULL, "/");
-                char reciever[username_max_length];  
-                strcpy(reciever, p);  // this is the username of the reciever
+                char message[message_max_length];
+                strcpy(message, p);  // this is the message
 
-                p = strtok(NULL, "/");
-				char message[message_max_length];
-				strcpy(message, p);  // this is the message
-
-                printf("Chat message from %s to %s: %s\n", sender, reciever, message);
-                strcpy(response, "16/Message sent");
-                write(sock_conn, response, strlen(response));
-
-				for (int i = 0; i < my_list.user_count; i++) {
-					printf("User: %s; Socket: %i\n", my_list.users[i].username, my_list.users[i].socket);
-				}
-				int sender_socket = get_socket(&my_list, sender);
-				int reciever_socket = get_socket(&my_list, reciever);
-
-                printf("Sender socket: %d\n", sender_socket);
-                printf("Reciever socket: %d\n", reciever_socket);
+                printf("Sending Message for %s\n", receiver);
                 
                 pthread_mutex_lock(&mutex);
-                char notification[write_buffer_length];
-                sprintf(notification, "16/%s/%s", sender, message);
-                printf("Sending to %s; message: %s\n", reciever, notification);
-                write(reciever_socket, notification, strlen(notification));
-                
-                printf("Message sent\n");
-				
+                int inboxIndex = get_inbox_index(&allInbox, receiver);
+                if (inboxIndex == -1) { // Create inbox
+                    Inbox newInbox;
+                    strcpy(newInbox.user, receiver);
+                    newInbox.message_count = 0;
+                    inboxIndex = allInbox.inbox_count;
+                    allInbox.inboxes[allInbox.inbox_count] = newInbox;
+					allInbox.inbox_count++;
+					printf("Created an inbox for %s\n", receiver);
+                }
+                Message newMessage;
+                strcpy(newMessage.sender, sender);
+                strcpy(newMessage.message, message);
+                allInbox.inboxes[inboxIndex].messages[allInbox.inboxes[inboxIndex].message_count] = newMessage;
+				allInbox.inboxes[inboxIndex].message_count++;
                 pthread_mutex_unlock(&mutex);
+                strcpy(response, "16/Message sent");
+				printf("Message for %s Sent\n", receiver);
+                write(sock_conn, response, strlen(response));
             }
 
             else if (option == 17) {  // protocol to send the invitation
@@ -1534,16 +1579,46 @@ void *attendClients(void *socket) {
                 }
             }
 
+            else if (option == 19) { // protocol to recieve the chat messages
+            {
+                p = strtok(NULL, "/");
+                char receiver[username_max_length];
+                strcpy(receiver, p);  // this is the username of the receiver
+				
+				printf("Update %s chats\n", receiver);
+                pthread_mutex_lock(&mutex);
+				
+                int inboxIndex = get_inbox_index(&allInbox, receiver);
+
+                if (inboxIndex == -1) {
+                    strcpy(response, "19/0");
+                }
+                else {
+                    sprintf(response, "19/%i/", allInbox.inboxes[inboxIndex].message_count);
+                    for (int i = 0; i < allInbox.inboxes[inboxIndex].message_count; i++) {
+                        strcat(response, allInbox.inboxes[inboxIndex].messages[i].sender);
+                        strcat(response, "/");
+                        strcat(response, allInbox.inboxes[inboxIndex].messages[i].message);
+                        strcat(response, "/");
+                    }
+                    allInbox.inboxes[inboxIndex].message_count = 0;
+                }
+				pthread_mutex_unlock(&mutex);
+                write(sock_conn, response, strlen(response));
+
+            }
+
    }
     close(sock_conn);
     mysql_close(conn);
     pthread_exit(NULL);
 }
-
+}
 
 
 int main() {
     my_list.user_count = 0;
+    allInbox.inbox_count = 0;
     pthread_t tid;
     int sockfd, new_sock;
     struct sockaddr_in server_addr, client_addr;
