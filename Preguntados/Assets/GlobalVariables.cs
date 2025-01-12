@@ -11,8 +11,8 @@ public class GlobalVariables : MonoBehaviour
      Este archivo sirve para funciones y variables necesitadas en todas las escenas del juego 
     */
     
-    private const string serverIP = "192.168.56.102";
-    private const int serverPort = 8080;
+    public const string serverIP = "192.168.56.102";
+    public const int serverPort = 8080;
     public static int maxRacha = 1; // Entra a ruleta
     public static int maxPuntuacion = 1; // Entra a ruleta
     private static TcpClient client;

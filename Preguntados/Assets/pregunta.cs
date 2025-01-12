@@ -159,7 +159,7 @@ public class pregunta : MonoBehaviour
     private void acabaPartida(string player) 
     {
         GlobalVariables.ganador = player;
-        SceneManager.LoadSceneAsync("EndGame");
+        SceneManager.LoadScene("EndGame");
     }
 
     // Girar la ruleta + pedir pregunta -> cambio a preguntaMenu
@@ -171,7 +171,7 @@ public class pregunta : MonoBehaviour
         // Cambiar a preguntaMenu
         if (timer <= 0)
         {
-            SceneManager.LoadSceneAsync("Pregunta");
+            SceneManager.LoadScene("Pregunta");
         }
         // Fijar el tipo de pregunta
         else if (timer <= 2)

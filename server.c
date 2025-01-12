@@ -15,6 +15,7 @@
 #include <pthread.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <ctype.h>
 
 
 
@@ -27,10 +28,12 @@ we should only have to change the constant*/
 #define username_max_length 30
 #define password_max_length 30
 #define max_users 256
+#define max_messages 256
 
 #define email_min_length 5
 #define username_min_length 5
 #define password_min_length 5
+#define message_max_length 128
 
 #define sql_query_max_length 1024
 #define read_buffer_length 512
@@ -58,10 +61,29 @@ typedef struct {
 it will be enough, because the detailed information of a user(if it exists) will be saved
 in the database, particularly in the Table "jugador". */
 
+typedef struct {
+    char sender[username_max_length];
+    char message[message_max_length];
+} Message;
+
+
+typedef struct {
+    char user[username_max_length];
+    Message messages[max_messages];
+    int message_count;
+} Inbox;
+
+typedef struct {
+    Inbox inboxes[max_users];
+    int inbox_count;
+} InboxList;
+
 
 UserList my_list;           
 int socket_num;             //Server's socket number.
 int sockets[256];
+
+InboxList allInbox;
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;      //Mutex for thread safety.
 pthread_t threads[256];                                 //Threads for each user.
@@ -121,9 +143,22 @@ int get_socket(UserList *list, char user[username_max_length]) {
     pthread_mutex_lock(&mutex);
     int found = 0;
     int i = 0;
+
+    char lUser[username_max_length];
+    for (int j = 0; j < strlen(user); j++) {
+        lUser[j] = tolower(user[j]);
+    }
+    
+    char lUser2[username_max_length];
     while (i < list->user_count && !found) {
-        if (strcmp(list->users[i].username, user) == 0) {
+        strcpy(lUser2, "");
+        for (int j = 0; j < strlen(list->users[i].username); j++) {
+            lUser2[j] = tolower(list->users[i].username[j]);
+        }
+
+        if (strcmp(lUser2, lUser) == 0) {
             found = 1;
+            printf("%s's socket found.\n", user);
         }
         else {
             i++;
@@ -134,6 +169,7 @@ int get_socket(UserList *list, char user[username_max_length]) {
         return list->users[i].socket;
     }
     else {
+        printf("%s's socket not found.\n", user);
         pthread_mutex_unlock(&mutex);
         return -1;
     }
@@ -556,7 +592,6 @@ int remove_user_from_database(char name[username_max_length], MYSQL *conn) {
     printf("User and all related data successfully deleted.\n");
     return 0;
 }
-}
 
 
 
@@ -648,14 +683,14 @@ int is_user_logged_in(UserList *list, const char *username) {
 }
 
 
-int info_sala(char username[username_max_length], char *result, MYSQL *conn) {
+int info_sala(char idPartida[id_max_length], char *result, MYSQL *conn) {
     MYSQL_RES *res;
     MYSQL_ROW row;
     char query[sql_query_max_length];
     strcpy(result, "9/");    // empty the result (initialize)
 
     pthread_mutex_lock(&mutex);
-    sprintf(query, "SELECT duracion FROM partidas WHERE (IDJugador1 IN (SELECT ID FROM jugador WHERE username='%s'))", username);    // 0: partida no iniciada, 1: partida en curso
+    sprintf(query, "SELECT duracion FROM partidas WHERE (IDPartida=%s)", idPartida);    // 0: partida no iniciada, 1: partida en curso
     if (mysql_query (conn, query)) {
         printf ("Error: %u %s\n", mysql_errno(conn), mysql_error(conn));
         return -1;
@@ -675,11 +710,13 @@ int info_sala(char username[username_max_length], char *result, MYSQL *conn) {
     else {
         strcat(result, "1/");
     }
+	char username[username_max_length];
+	int check = getUser1FromIDPartida(idPartida, username, conn);
 	strcat(result, username);
 	strcat(result, "/");
 
     for (int i = 2; i < 5; i++) {
-        sprintf(query, "SELECT username FROM jugador WHERE (ID IN (SELECT IDJugador%i FROM partidas WHERE (IDJugador1 IN (SELECT ID FROM jugador WHERE username='%s'))))", i, username);
+        sprintf(query, "SELECT username FROM jugador WHERE (ID IN (SELECT IDJugador%i FROM partidas WHERE (IDPartida=%s)))", i, idPartida);
         if (mysql_query (conn, query)) {
             printf ("Error: %u %s\n", mysql_errno(conn), mysql_error(conn));
             break;
@@ -927,12 +964,56 @@ int findNextPlayerSpot(int idPartida, MYSQL *conn) {
     return id;
 }
 
+int isUserInGame(char username[username_max_length], int idPartida, MYSQL *conn) {
+    char query[sql_query_max_length];
+    MYSQL_RES *res;
+    MYSQL_ROW row;
+    sprintf(query, "SELECT ID FROM jugador WHERE username='%s'", username);
+    if (mysql_query(conn, query)) {
+        fprintf(stderr, "%s\n", mysql_error(conn));
+        return -1;
+    }
+    res = mysql_store_result(conn);
+    if (res == NULL) {
+        return -1;
+    }
+    row = mysql_fetch_row(res);
+    if (row == NULL) {
+        return -1;
+    }
+    int id = atoi(row[0]);
+    mysql_free_result(res);
+    sprintf(query, "SELECT IDJugador1, IDJugador2, IDJugador3, IDJugador4 FROM partidas WHERE IDPartida=%i", idPartida);
+    if (mysql_query(conn, query)) {
+        fprintf(stderr, "%s\n", mysql_error(conn));
+        return -1;
+    }
+    res = mysql_store_result(conn);
+    if (res == NULL) {
+        return -1;
+    }
+    row = mysql_fetch_row(res);
+    if (row == NULL) {
+        return -1;
+    }
+    for (int i = 1; i < 5; i++) {
+        if (row[i-1] != NULL && atoi(row[i-1]) == id) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 
 int join_sala(char username[username_max_length], int idPartida, char *response, MYSQL *conn) {
     MYSQL_RES *res;
     MYSQL_ROW row;
     char query[sql_query_max_length];
     pthread_mutex_lock(&mutex);
+    if (isUserInGame(username, idPartida, conn) == 1) {
+        sprintf(response, "14/Error");
+        return -1;
+    }
     int id = get_user_id(username, conn);
     int player = findNextPlayerSpot(idPartida, conn);
     if (player == -1) {
@@ -1012,6 +1093,31 @@ void handle_chat_message(const char *sender_username, const char *message) {
     }
     pthread_mutex_unlock(&mutex);
     mysql_close(conn);
+}
+
+
+int get_inbox_index(InboxList *list, char username[username_max_length]) {
+    char lUser[username_max_length];
+    for (int j = 0; j < strlen(username); j++) {
+        lUser[j] = tolower(username[j]);
+    }
+    
+    char lUser2[username_max_length];
+    for (int i = 0; i < list->inbox_count; i++) {
+        strcpy(lUser2, "");
+        for (int j = 0; j < strlen(list->inboxes[i].user); j++) {
+            lUser2[j] = tolower(list->inboxes[i].user[j]);
+        }
+		
+		printf("Comparing %s and %s\n", lUser, lUser2);
+        if (strcmp(lUser, lUser2) == 0) {
+            printf("User found in inbox %i\n", i);
+            return i;
+        }
+    }
+    printf("Inbox Not Found\n");
+	printf("Total Inbox: %i\n", list->inbox_count);
+    return -1;
 }
 
 
@@ -1258,9 +1364,7 @@ void *attendClients(void *socket) {
             else if (option == 9) {         // Informacion de la sala
 				printf("Info Lobby\n");
 				p = strtok(NULL, "/");
-				getUser1FromIDPartida(p, username, conn);
-                printf("User: %s\n", username);
-				int res = info_sala(username, response, conn);
+				int res = info_sala(p, response, conn);
                 printf("Response: %s\n", response);
 				write(sock_conn, response, strlen(response));
             }
@@ -1359,64 +1463,54 @@ void *attendClients(void *socket) {
 				} else {
 					fprintf(stderr, "Error: Socket de conexion no valido\n");
 				}
-                //p = strtok(NULL, "/");
-                //strcpy(username, p);
-				//printf("User: %s.\nResponse: '%s'\n", username, response);
-                //pthread_mutex_lock(&mutex);
-                //int idP = get_last_id_partida(conn);
-                //int idU = get_user_id(username, conn);
-				//printf("User ID: %i, Game ID: %i\n", idU, idP);
-                //int i = crear_sala(idP, idU, response, conn);
-                //pthread_mutex_unlock(&mutex);
-				//printf("Response: %s\n", response);
-                //write(sock_conn, response, strlen(response));
             }
 
-            else if (option == 16) {  // Protocol for chat: 16/sender/message
-                    p = strtok(NULL, "/");
-                    char sender[username_max_length];
-                    strcpy(sender, p);  // this is the username of the sender
+            else if (option == 16) {  // Protocol for chat: 16/sender/receiver/message
+				p = strtok(NULL, "/");
+                char sender[username_max_length];
+                strcpy(sender, p);  // this is the username of the sender
+                
+                p = strtok(NULL, "/");
+                char receiver[username_max_length];
+                strcpy(receiver, p);  // this is the username of the receiver
 
-                    p = strtok(NULL, "/");
-                    char message[message_max_length];
-                    strcpy(message, p);  // this is the message
+                p = strtok(NULL, "/");
+                char message[message_max_length];
+                strcpy(message, p);  // this is the message
 
-                    
-                    ptherad_mutex_lock(&mutex);
-                    int sender_socket = get_socket(&my_list, sender);
-                    pthread_mutex_unlock(&mutex);
-
-                    // We need the Room ID of the sender to send the message to all players in the room.
-                    pthread_mutex_lock(&mutex);
-                    int room_id = find_sala(sender, conn);
-                    if (room_id == -1) {
-                        char error_message[] = "16/Error: Sender is not in a room";
-                        write(sender_socket, error_message, strlen(error_message));
-                        return;
-                    }               
-                    pthread_mutex_unlock(&mutex);
-
-
-                    for (int i = 0; i < my_list.user_count; i++) {
-                        int user_socket = my_list.users[i].socket;
-                        int user_room = find_sala(my_list.users[i].username, conn);
-                        if (user_room == room_id) {
-                            char notification[write_buffer_length];
-                            sprintf(notification, "16/%s/%s", sender, message);
-                            write(user_socket, notification, strlen(notification));
-                        }
-                    }
+                printf("Sending Message for %s\n", receiver);
+                
+                pthread_mutex_lock(&mutex);
+                int inboxIndex = get_inbox_index(&allInbox, receiver);
+                if (inboxIndex == -1) { // Create inbox
+                    Inbox newInbox;
+                    strcpy(newInbox.user, receiver);
+                    newInbox.message_count = 0;
+                    inboxIndex = allInbox.inbox_count;
+                    allInbox.inboxes[allInbox.inbox_count] = newInbox;
+					allInbox.inbox_count++;
+					printf("Created an inbox for %s\n", receiver);
                 }
+                Message newMessage;
+                strcpy(newMessage.sender, sender);
+                strcpy(newMessage.message, message);
+                allInbox.inboxes[inboxIndex].messages[allInbox.inboxes[inboxIndex].message_count] = newMessage;
+				allInbox.inboxes[inboxIndex].message_count++;
+                pthread_mutex_unlock(&mutex);
+                strcpy(response, "16/Message sent");
+				printf("Message for %s Sent\n", receiver);
+                write(sock_conn, response, strlen(response));
+            }
 
             else if (option == 17) {  // protocol to send the invitation
-            """
+            /*
             Client Side (User A): This user already has a list of online users, and will have a button Send Invitation to send the invitation.
             17/UserA/UserB
             If the user B is online, the server will send a notification to the user B.
             17/UserA
             Then, sends a confirmation back to the user A.
             17/Invitation sent to UserB
-            """
+            */
                 printf("Send Invitation\n");
                 p = strtok(NULL, "/");
                 char sender[username_max_length];
@@ -1440,12 +1534,12 @@ void *attendClients(void *socket) {
             }
 
             else if (option == 18) { // protocol to handle invitation response
-            """
+            /*
             Client Side (User B): A popup appears: UserA has invited you to play:
             - if (Accept(sends(18/UserA/UserB/Accept)))
             - else if (Decline(sends(18/UserA/UserB/Decline)))
             Then the server process this option 18, creates a game session and notify User A.
-            """
+            */
                 printf("Handle Invitation Response\n");
                 p = strtok(NULL, "/");
                 char sender[username_max_length];
@@ -1456,8 +1550,8 @@ void *attendClients(void *socket) {
                 strcpy(invitee, p);  // this is the username of the invitee
 
                 p = strtok(NULL, "/");
-                char deicision[10];
-                strcpy(deicision, p);  // this is the decision of the invitee: Accept or Decline.
+                char decision[10];
+                strcpy(decision, p);  // this is the decision of the invitee: Accept or Decline.
 
                 int sender_socket = get_socket(&my_list, sender);
                 if (sender_socket == -1) {
@@ -1485,16 +1579,46 @@ void *attendClients(void *socket) {
                 }
             }
 
+            else if (option == 19) { // protocol to recieve the chat messages
+            {
+                p = strtok(NULL, "/");
+                char receiver[username_max_length];
+                strcpy(receiver, p);  // this is the username of the receiver
+				
+				printf("Update %s chats\n", receiver);
+                pthread_mutex_lock(&mutex);
+				
+                int inboxIndex = get_inbox_index(&allInbox, receiver);
+
+                if (inboxIndex == -1) {
+                    strcpy(response, "19/0");
+                }
+                else {
+                    sprintf(response, "19/%i/", allInbox.inboxes[inboxIndex].message_count);
+                    for (int i = 0; i < allInbox.inboxes[inboxIndex].message_count; i++) {
+                        strcat(response, allInbox.inboxes[inboxIndex].messages[i].sender);
+                        strcat(response, "/");
+                        strcat(response, allInbox.inboxes[inboxIndex].messages[i].message);
+                        strcat(response, "/");
+                    }
+                    allInbox.inboxes[inboxIndex].message_count = 0;
+                }
+				pthread_mutex_unlock(&mutex);
+                write(sock_conn, response, strlen(response));
+
+            }
+
    }
     close(sock_conn);
     mysql_close(conn);
     pthread_exit(NULL);
 }
-
+}
 
 
 int main() {
     my_list.user_count = 0;
+    allInbox.inbox_count = 0;
     pthread_t tid;
     int sockfd, new_sock;
     struct sockaddr_in server_addr, client_addr;

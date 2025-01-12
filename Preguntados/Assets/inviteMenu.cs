@@ -57,7 +57,7 @@ public class inviteMenu : MonoBehaviour
     // Vuelta al menu
     public void backClick()
     {
-        SceneManager.LoadSceneAsync("MainMenu");
+        SceneManager.LoadScene("MainMenu");
     }
 
     // Unirse a sala
@@ -78,7 +78,7 @@ public class inviteMenu : MonoBehaviour
         GlobalVariables.idPartida = nuevaID;
         Debug.Log($"Joining Game {GlobalVariables.idPartida}");
         GlobalVariables.joinedGame = true;
-        SceneManager.LoadSceneAsync("MainMenu");
+        SceneManager.LoadScene("MainMenu");
     }
 
     // Invitar a sala
@@ -100,7 +100,7 @@ public class inviteMenu : MonoBehaviour
         GlobalVariables.idPartida = nuevaID;
         Debug.Log($"Inviting {user} to Game {GlobalVariables.idPartida}");
         GlobalVariables.joinedGame = true;
-        SceneManager.LoadSceneAsync("MainMenu");
+        SceneManager.LoadScene("MainMenu");
     }
 
     // Click en boton de usuario

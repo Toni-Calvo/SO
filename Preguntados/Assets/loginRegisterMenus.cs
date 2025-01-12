@@ -35,13 +35,13 @@ public class loginRegisterMenus : MonoBehaviour
     public void moveToRegister()
     {
         GlobalVariables.registeredUsername = null;
-        SceneManager.LoadSceneAsync("RegisterMenu");
+        SceneManager.LoadScene("RegisterMenu");
     }
 
     // Cambia a la pantalla de login
     public void moveToLogin()
     {
-        SceneManager.LoadSceneAsync("LoginMenu");
+        SceneManager.LoadScene("LoginMenu");
     }
 
     // Registra un nuevo usuario
@@ -54,7 +54,7 @@ public class loginRegisterMenus : MonoBehaviour
             if (response == "Registro")
             {
                 GlobalVariables.registeredUsername = username;
-                SceneManager.LoadSceneAsync("LoginMenu");
+                SceneManager.LoadScene("LoginMenu");
             }
             else if (response == "Usuario existente")
             {
@@ -87,7 +87,7 @@ public class loginRegisterMenus : MonoBehaviour
             if (response == "Login")
             {
                 GlobalVariables.currentUsername = username;
-                SceneManager.LoadSceneAsync("MainMenu");
+                SceneManager.LoadScene("MainMenu");
             }
             else
             {
