@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Text;
-using UnityEditor.PackageManager;
 using UnityEngine;
 
 public class GlobalVariables : MonoBehaviour
