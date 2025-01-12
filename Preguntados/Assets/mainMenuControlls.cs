@@ -14,17 +14,18 @@ public class mainMenuControlls : MonoBehaviour
     public TMP_Text p3;
     public TMP_Text p4;
     public TMP_Text info;
-    private float timer;
+    private float updateTimer;
+    private float inboxTimer;
     public TMP_Text GameIDLbl;
     public TMP_Text chat;
     public TMP_InputField chatInput;
-    //public Thread atender;
 
 
     void Start()
     {
         // Timer de escucha del servidor
-        timer = 5;
+        updateTimer = 1;
+        inboxTimer = 1.5F;
         
         // Carga las categorias del juego
         GlobalVariables.loadCathegories();
@@ -56,12 +57,29 @@ public class mainMenuControlls : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Return))
             SendChat();
 
-        timer -= Time.deltaTime;
+        updateTimer -= Time.deltaTime;
+        inboxTimer -= Time.deltaTime;
         // Escucha del servidor
-        if (timer <= 0)
+        if (updateTimer <= 0)
         {
             escuchaServidor();
             actualizaLabels();
+        }
+        if (inboxTimer <= 0)
+        {
+            actualizaChat();
+            inboxTimer = 1;
+        }
+    }
+
+    private void actualizaChat()
+    {
+        string response = GlobalVariables.SendRequest($"19/{GlobalVariables.currentUsername}"); // Recibir mensajes del chat
+        Debug.Log(response);
+        string[] trozos = response.Split("/");
+        for (int i = 0; i < Convert.ToInt32(trozos[1]); i++)
+        {
+            chat.text += $"[{trozos[2*i + 2]}]: {trozos[2*i + 3]}\n";
         }
     }
 
@@ -164,7 +182,7 @@ public class mainMenuControlls : MonoBehaviour
     // Solicita la lista de jugadores en la sala y si ha iniciado partida
     private void escuchaServidor()
     {
-        timer = 5;
+        updateTimer = 1;
 
         Debug.Log("Escuchando servidor ID: " + GlobalVariables.idPartida);
         string response = GlobalVariables.SendRequest($"9/{GlobalVariables.idPartida}"); // Solicitar lista de jugadores en la sala + juego iniciado -> 0: no , 1: si / jugadores
