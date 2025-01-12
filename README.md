@@ -13,9 +13,9 @@ Versión 1 generada por Queralt y Paula.<br>
 Versión 1 verificada por Toni.<br>
 Versión 1 comunicada por Uzair y Queralt.<br> 
 
-Version 2 generada por Toni y uzair
-Version 2 verificada por Paula
-Version 2 comunicada por Queralt
+Version 2 generada por Toni y uzair.<br>
+Version 2 verificada por Paula.<br>
+Version 2 comunicada por Queralt.<br>
 
 Versión 4 generada por Toni y Uzair.<br>
 Versión 4 verificada y subido a shiva por Paula.<br>
