@@ -7,6 +7,7 @@ git clone https://github.com/Toni-Calvo/SO.git
 ## Video
 V1: https://youtu.be/z-wsQj177aw
 V2: https://youtu.be/9v11TMqQP6A
+V3: https://youtu.be/81fxUQefQaE
 V4: https://youtu.be/0U3I5fOpfjs
 ## Work Done
 Versión 1 generada por Queralt y Paula.<br>
@@ -16,6 +17,10 @@ Versión 1 comunicada por Uzair y Queralt.<br>
 Version 2 generada por Toni y uzair.<br>
 Version 2 verificada por Paula.<br>
 Version 2 comunicada por Queralt.<br>
+
+Version 3 generada por Toni(unity) y uzair(servidor) Queralt(servidor que no se usó al final y base preguntas juego) y paula(correcion de los errores de los demas codigos).<br>
+Version 3 verificada por Uzair.<br>
+Version 3 comunicada por Queralt.<br>
 
 Versión 4 generada por Toni y Uzair.<br>
 Versión 4 verificada y subido a shiva por Paula.<br>
