@@ -114,7 +114,7 @@ public class pregunta : MonoBehaviour
     // Actualiza el estado de la partida (turno + scores)
     private void escuchaServidor()
     {
-        refreshTimer = 5;
+        refreshTimer = 1;
         
         string response = GlobalVariables.SendRequest($"11/{GlobalVariables.idPartida}"); // Solicitar puntuaciones + turno -> turno/nQuesitosPlayer1/nQuesitosPlayer2/nQuesitosPlayer3/nQuesitosPlayer4
         Debug.Log(response);
@@ -185,10 +185,10 @@ public class pregunta : MonoBehaviour
             contLabel = 0;
             if (tipoPregunta.text == "Historia")
             {
-                tipoPregunta.text = "Geograf�a";
+                tipoPregunta.text = "Geografia";
                 cam.backgroundColor = Color.yellow;
             }
-            else if (tipoPregunta.text == "Geograf�a")
+            else if (tipoPregunta.text == "Geografia")
             {
                 tipoPregunta.text = "Ciencia";
                 cam.backgroundColor = Color.green;
@@ -228,15 +228,15 @@ public class pregunta : MonoBehaviour
     // Escribe a los jugadores + sus puntuaciones
     private void setLabels()
     {
-        p1.text = $"{GlobalVariables.players[0]} {GlobalVariables.scoreP1}/5";
-        p2.text = $"{GlobalVariables.players[1]} {GlobalVariables.scoreP2}/5";
+        p1.text = $"{GlobalVariables.players[0]} {GlobalVariables.scoreP1}/3";
+        p2.text = $"{GlobalVariables.players[1]} {GlobalVariables.scoreP2}/3";
 
         if (GlobalVariables.players.Count > 2)
         {
-            p3.text = $"{GlobalVariables.players[2]} {GlobalVariables.scoreP3}/5";
+            p3.text = $"{GlobalVariables.players[2]} {GlobalVariables.scoreP3}/3";
             if (GlobalVariables.players.Count > 3)
             {
-                p4.text = $"{GlobalVariables.players[3]} {GlobalVariables.scoreP4}/5";
+                p4.text = $"{GlobalVariables.players[3]} {GlobalVariables.scoreP4}/3";
             }
             else
             {
