@@ -295,7 +295,6 @@ int removeFromGame(char user[username_max_length], char idP[id_max_length], MYSQ
 	}
 	mysql_free_result(res);
 	printf("Removed propperly\n");
-	reorderLobby(idP, &conn);
 	pthread_mutex_unlock(&mutex);
 	return 0;
 }
@@ -308,6 +307,7 @@ int reorderLobby(char idP[id_max_length], MYSQL *conn) {
 	int IDs[3];
 	int num = 0;
 	printf("IDs Created\n");
+	pthread_mutex_lock(&mutex);
 	// Guardar los jugadores de la sala
 	for (int i = 1; i != 5; i++) {
 		sprintf(query, "SELECT IDJugador%i FROM partidas WHERE IDPartida=%s", i, idP);
@@ -330,6 +330,7 @@ int reorderLobby(char idP[id_max_length], MYSQL *conn) {
 	// delete lobby
 	if (num == 0) {
 		printf("Deletion\n");
+		pthread_mutex_unlock(&mutex);
 		delete_sala(idP, conn);
 	}
 	// Reordenar usando la lista
@@ -351,6 +352,7 @@ int reorderLobby(char idP[id_max_length], MYSQL *conn) {
 		}
 	}
 	printf("Finished\n");
+	pthread_mutex_unlock(&mutex);
 	return 0;
 }
 
