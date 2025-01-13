@@ -23,11 +23,16 @@ public class pregunta : MonoBehaviour
     private float contLabel;
     private bool condition;
     private int selectedType;
+    public Button game1Btn;
+    public Button game2Btn;
+    public Button game3Btn;
+    public Button newgame;
 
     void Start()
     {
         // Escribe a los jugadores en la sala
         setLabels();
+        iniciaBotones();
 
         cam.backgroundColor = new Color(0.188f, 0.2961f, 0.47f, 0f);
 
@@ -109,6 +114,44 @@ public class pregunta : MonoBehaviour
         }
 
         
+    }
+    
+    // Inicia los botones de la mecanica multipartida
+    private void iniciaBotones() {
+        newgame.gameObject.SetActive(true);
+        game1Btn.gameObject.SetActive(false);
+        game2Btn.gameObject.SetActive(false);
+        game3Btn.gameObject.SetActive(false);
+        if (GlobalVariables.games.Count > 0)
+        {
+            game1Btn.gameObject.SetActive(true);
+            game1Btn.GetComponentInChildren<TMP_Text>().text = $"{GlobalVariables.games[0].idPartida}";
+            if (GlobalVariables.games.Count > 1)
+            {
+                game2Btn.gameObject.SetActive(true);
+                game2Btn.GetComponentInChildren<TMP_Text>().text = $"{GlobalVariables.games[1].idPartida}";
+                if (GlobalVariables.games.Count > 2)
+                {
+                    game3Btn.gameObject.SetActive(true);
+                    newgame.gameObject.SetActive(false);
+                    game3Btn.GetComponentInChildren<TMP_Text>().text = $"{GlobalVariables.games[2].idPartida}";
+                }
+            }
+        }
+    }
+
+    // cambia de partida
+    public void changeGame()
+    {
+        GlobalVariables.setActualGame(Convert.ToInt32(UnityEngine.EventSystems.EventSystem.current.currentSelectedGameObject.GetComponentInChildren<TMP_Text>().text));
+        SceneManager.LoadScene("MainMenu");
+    }
+
+    public void newgameClick()
+    {
+        GlobalVariables.saveGame();
+        GlobalVariables.joinedGame = false; // Crea una nueva partida
+        SceneManager.LoadScene("MainMenu");
     }
 
     // Actualiza el estado de la partida (turno + scores)

@@ -19,6 +19,10 @@ public class mainMenuControlls : MonoBehaviour
     public TMP_Text GameIDLbl;
     public TMP_Text chat;
     public TMP_InputField chatInput;
+    public Button game1Btn;
+    public Button game2Btn;
+    public Button game3Btn;
+
 
 
     void Start()
@@ -43,13 +47,14 @@ public class mainMenuControlls : MonoBehaviour
             GlobalVariables.idPartida = Convert.ToInt32(response.Split("/")[1]);
             GlobalVariables.players = new List<string>();
             GlobalVariables.players.Add(GlobalVariables.currentUsername);
-            GlobalVariables.games.Add(GlobalVariables.idPartida);
+            GlobalVariables.joinedGame = true;
         }
         // Se ha unido a una sala
         else
             escuchaServidor();
         
         actualizaLabels();
+        iniciaBotones();
     }
 
     void Update()
@@ -81,6 +86,36 @@ public class mainMenuControlls : MonoBehaviour
         {
             chat.text += $"[{trozos[2*i + 2]}]: {trozos[2*i + 3]}\n";
         }
+    }
+
+    // Inicia los botones de la mecanica multipartida
+    private void iniciaBotones() {
+        
+        game1Btn.gameObject.SetActive(false);
+        game2Btn.gameObject.SetActive(false);
+        game3Btn.gameObject.SetActive(false);
+        if (GlobalVariables.games.Count > 0)
+        {
+            game1Btn.gameObject.SetActive(true);
+            game1Btn.GetComponentInChildren<TMP_Text>().text = $"{GlobalVariables.games[0].idPartida}";
+            if (GlobalVariables.games.Count > 1)
+            {
+                game2Btn.gameObject.SetActive(true);
+                game2Btn.GetComponentInChildren<TMP_Text>().text = $"{GlobalVariables.games[1].idPartida}";
+                if (GlobalVariables.games.Count > 2)
+                {
+                    game3Btn.gameObject.SetActive(true);
+                    game3Btn.GetComponentInChildren<TMP_Text>().text = $"{GlobalVariables.games[2].idPartida}";
+                }
+            }
+        }
+    }
+
+    // cambia de partida
+    public void changeGame()
+    {
+        GlobalVariables.setActualGame(Convert.ToInt32(UnityEngine.EventSystems.EventSystem.current.currentSelectedGameObject.GetComponentInChildren<TMP_Text>().text));
+        SceneManager.LoadScene("MainMenu");
     }
 
     // Actualiza las personas en sala
@@ -131,12 +166,11 @@ public class mainMenuControlls : MonoBehaviour
     public void joinClicked()
     {
         escuchaServidor();
-        if (GlobalVariables.players.Count > 1)
+        if (GlobalVariables.currentUsername.ToLower() == GlobalVariables.players[0].ToLower() && GlobalVariables.players.Count > 1)
         {
             info.text = "Vacia la sala antes de unirte";
             return;
         }
-        GlobalVariables.SendRequest($"12/{GlobalVariables.idPartida}"); // Eliminar sala
         GlobalVariables.inviteJoin = "Join";
         SceneManager.LoadScene("InviteMenu");
     }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -18,18 +19,19 @@ public class preguntaMenu : MonoBehaviour
     private bool block;
     private List<float[]> positions;
     private int pos;
+    
 
     // Asignar a los botones posiciones aleatorias
     private void SetButtonPositions()
     {
-        pos = Random.Range(0, 4);
+        pos = UnityEngine.Random.Range(0, 4);
         R1.transform.position = new Vector3(positions[pos][0], positions[pos][1], 0);
         //Debug.Log(R1.transform.position);
         positions.RemoveAt(pos);
-        pos = Random.Range(0, 3);
+        pos = UnityEngine.Random.Range(0, 3);
         R2.transform.position = new Vector3(positions[pos][0], positions[pos][1], 0);
         positions.RemoveAt(pos);
-        pos = Random.Range(0, 2);
+        pos = UnityEngine.Random.Range(0, 2);
         R3.transform.position = new Vector3(positions[pos][0], positions[pos][1], 0);
         positions.RemoveAt(pos);
         R4.transform.position = new Vector3(positions[0][0], positions[0][1], 0);

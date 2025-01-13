@@ -16,7 +16,6 @@ public class loginRegisterMenus : MonoBehaviour
 
     void Start()
     {
-        GlobalVariables.games = new List<int>();
         // Para saber si el menu se carga en una sala de juego
         GlobalVariables.joinedGame = false;
 
@@ -87,6 +86,7 @@ public class loginRegisterMenus : MonoBehaviour
             if (response == "Login")
             {
                 GlobalVariables.currentUsername = username;
+                GlobalVariables.firstStart();
                 SceneManager.LoadScene("MainMenu");
             }
             else

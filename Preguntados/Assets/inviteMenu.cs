@@ -31,10 +31,18 @@ public class inviteMenu : MonoBehaviour
         // Crear lista de jugadores conectados
         List<string> users = new List<string>(response.Split("/")); // 7/nPlayers/username1/username2/.../usernameN
         users.RemoveAt(0);
-
+        Debug.Log(GlobalVariables.inviteJoin);
         // Crea un boton por cada usuario conectado
         for (int i = 1; i < users.Count; i++)
         {
+            Debug.Log(users[i]);
+            if (users[i] == "")
+                continue;
+            if (GlobalVariables.inviteJoin == "Invite" && users[i] == GlobalVariables.currentUsername)
+                continue;
+            if (GlobalVariables.inviteJoin == "Join" && Convert.ToInt32(users[i]) == GlobalVariables.idPartida)
+                continue;
+                
             GameObject newUserBtn = DefaultControls.CreateButton(new DefaultControls.Resources());
             userBtn = newUserBtn.GetComponent<Button>();
             userBtn.transform.SetParent(GameObject.Find("Canvas").transform);
@@ -75,6 +83,7 @@ public class inviteMenu : MonoBehaviour
             return;
         }
 
+        GlobalVariables.SendRequest($"12/{GlobalVariables.idPartida}"); // Eliminar sala
         GlobalVariables.idPartida = nuevaID;
         Debug.Log($"Joining Game {GlobalVariables.idPartida}");
         GlobalVariables.joinedGame = true;
@@ -85,7 +94,7 @@ public class inviteMenu : MonoBehaviour
     private void inviteToSala(string user) {
         int i = 1;
         if (i != 1) {
-            string response = GlobalVariables.SendRequest($"/{GlobalVariables.currentUsername}/{user}"); // Invitar a sala
+            string response = GlobalVariables.SendRequest($"21/{GlobalVariables.currentUsername}/{user}"); // Invitar a sala
 
             if (response == "4/Error") {
                 errorBox.text = "Esa sala ya no existe.";
