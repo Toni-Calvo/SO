@@ -13,8 +13,8 @@ public class GlobalVariables : MonoBehaviour
     
     public const string serverIP = "192.168.56.102";
     public const int serverPort = 8080;
-    public static int maxRacha = 1; // Entra a ruleta
-    public static int maxPuntuacion = 1; // Entra a ruleta
+    public static int maxRacha = 2; // Entra a ruleta
+    public static int maxPuntuacion = 5; // Entra a ruleta
     private static TcpClient client;
     public static List<int> games; // Entra a MainMenu
     public static string registeredUsername; // Entra a login
