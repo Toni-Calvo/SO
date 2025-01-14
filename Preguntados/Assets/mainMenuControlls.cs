@@ -175,6 +175,13 @@ public class mainMenuControlls : MonoBehaviour
         SceneManager.LoadScene("InviteMenu");
     }
 
+    // Cambia a la pantalla de join
+    public void HighScoreClicked()
+    {
+        escuchaServidor();
+        SceneManager.LoadScene("Options");
+    }
+
     public void inviteClicked()
     {
         escuchaServidor();
