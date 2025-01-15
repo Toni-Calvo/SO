@@ -92,40 +92,15 @@ public class inviteMenu : MonoBehaviour
 
     // Invitar a sala
     private void inviteToSala(string user) {
-        int i = 1;
-        if (i != 1) {
-            string response = GlobalVariables.SendRequest($"21/{GlobalVariables.currentUsername}/{user}"); // Invitar a sala
-
-            if (response == "4/Error") {
-                errorBox.text = "Esa sala ya no existe.";
-                return;
-            }
-
-            int nuevaID = Convert.ToInt32(response.Split("/")[1]);
-
-            if (nuevaID == GlobalVariables.idPartida) {
-                errorBox.text = "Ya estas en esa sala.";
-                return;
-            }
-
-            GlobalVariables.idPartida = nuevaID;
-            Debug.Log($"Inviting {user} to Game {GlobalVariables.idPartida}");
-            GlobalVariables.joinedGame = true;
-            SceneManager.LoadScene("MainMenu");
-        }
+        GlobalVariables.SendRequest($"21/{GlobalVariables.currentUsername}/{GlobalVariables.idPartida}/{user}"); // Invitar a sala
+        Debug.Log($"Inviting {user} to Game {GlobalVariables.idPartida}");
+        SceneManager.LoadScene("MainMenu");
     }
 
     // Click en boton de usuario
     public void userBtnClick(string user)
     {
         Debug.Log($"Clicked {user}");
-        if (user == GlobalVariables.currentUsername) {
-            if (GlobalVariables.inviteJoin == "Invite")
-                errorBox.text = "No puedes invitarte a ti mismo.";
-            else
-                errorBox.text = "Ya estas en esa sala.";
-            return;
-        }
 
         foreach (string player in GlobalVariables.players) {
             if (player.ToLower() == user.ToLower()) {
@@ -137,6 +112,7 @@ public class inviteMenu : MonoBehaviour
             }
         }
 
+        Debug.Log(GlobalVariables.inviteJoin);
         if (GlobalVariables.inviteJoin == "Invite") 
             inviteToSala(user);
         else

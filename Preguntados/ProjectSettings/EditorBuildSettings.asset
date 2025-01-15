@@ -29,4 +29,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Options.unity
     guid: 01eb6bed63ef0864698833cdc6c54be9
+  - enabled: 1
+    path: Assets/Scenes/Invitation.unity
+    guid: 46fbc7e0ff2c0494496508cb8d72115a
   m_configObjects: {}

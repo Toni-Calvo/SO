@@ -21,8 +21,7 @@ public class GlobalVariables : MonoBehaviour
     public static string currentUsername; // Entra a mainMenu
     public static List<string> cathegories; // Entra a ruleta
     public static bool joinedGame; // Entra a mainMenu
-
-
+    public static string inviteQuery; // Entra a invitation
     public static int idPartida; // Entra a mainMenu
     public static string currentQuestion; // Entra a pregunta
     public static string currentA1; // Entra a pregunta
