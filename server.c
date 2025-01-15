@@ -78,12 +78,23 @@ typedef struct {
     int inbox_count;
 } InboxList;
 
+typedef struct {
+    char receiver[username_max_length];
+    char sender[username_max_length];
+    int idP;
+} Invitation;
+
+typedef struct {
+    Invitation invitations[max_users];
+    int invitation_count;
+} InvitationList;
 
 UserList my_list;           
 int socket_num;             //Server's socket number.
 int sockets[256];
 
 InboxList allInbox;
+InvitationList allInvitations;
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;      //Mutex for thread safety.
 pthread_t threads[256];                                 //Threads for each user.
@@ -1110,6 +1121,7 @@ int get_inbox_index(InboxList *list, char username[username_max_length]) {
         for (int j = 0; j < strlen(list->inboxes[i].user); j++) {
             lUser2[j] = tolower(list->inboxes[i].user[j]);
         }
+        lUser2[strlen(list->inboxes[i].user)] = '\0';
 		
 		printf("Comparing %s and %s\n", lUser, lUser2);
         if (strcmp(lUser, lUser2) == 0) {
@@ -1119,6 +1131,32 @@ int get_inbox_index(InboxList *list, char username[username_max_length]) {
     }
     printf("Inbox Not Found\n");
 	printf("Total Inbox: %i\n", list->inbox_count);
+    return -1;
+}
+
+
+int get_invitation_index(InvitationList *list, char username[username_max_length]) {
+    char lUser[username_max_length];
+    for (int j = 0; j < strlen(username); j++) {
+        lUser[j] = tolower(username[j]);
+    }
+    
+    char lUser2[username_max_length];
+    for (int i = 0; i < list->invitation_count; i++) {
+        strcpy(lUser2, "");
+        for (int j = 0; j < strlen(list->invitations[i].receiver); j++) {
+            lUser2[j] = tolower(list->invitations[i].receiver[j]);
+        }
+        lUser2[strlen(list->invitations[i].receiver)] = '\0';
+        
+        printf("Comparing %s and %s\n", lUser, lUser2);
+        if (strcmp(lUser, lUser2) == 0) {
+            printf("User found in invitation %i\n", i);
+            return i;
+        }
+    }
+    printf("Invitation Not Found\n");
+    printf("Total Invitation: %i\n", list->invitation_count);
     return -1;
 }
 
@@ -1491,7 +1529,7 @@ void *attendClients(void *socket) {
                     inboxIndex = allInbox.inbox_count;
                     allInbox.inboxes[allInbox.inbox_count] = newInbox;
 					allInbox.inbox_count++;
-					printf("Created an inbox for %s\n", receiver);
+					printf("Created an inbox for %s\n", newInbox.user);
                 }
                 Message newMessage;
                 strcpy(newMessage.sender, sender);
@@ -1582,7 +1620,7 @@ void *attendClients(void *socket) {
             }
 
             else if (option == 19) { // protocol to recieve the chat messages
-            {
+            
                 p = strtok(NULL, "/");
                 char receiver[username_max_length];
                 strcpy(receiver, p);  // this is the username of the receiver
@@ -1610,17 +1648,60 @@ void *attendClients(void *socket) {
 
             }
 
+            else if (option == 20) {    // protocol to check invitations
+                p = strtok(NULL, "/");
+                char username[username_max_length];
+                strcpy(username, p);  // this is the username of the receiver
+                pthread_mutex_lock(&mutex);
+                int invitationIndex = get_invitation_index(&allInvitations, username);
+                if (invitationIndex == -1) {
+                    strcpy(response, "20/0");
+                }
+                else {
+                    sprintf(response, "20/%i/%s", allInvitations.invitations[invitationIndex].idP, allInvitations.invitations[invitationIndex].sender);
+                    for (int i = invitationIndex; i < allInvitations.invitation_count - 1; i++) {
+                        allInvitations.invitations[i] = allInvitations.invitations[i+1];
+                    }
+                    allInvitations.invitation_count--;
+                }
+                pthread_mutex_unlock(&mutex);
+                write(sock_conn, response, strlen(response));
+            }
+
+            else if (option == 21) {    // protocol for invitation
+                p = strtok(NULL, "/");
+                char sender[username_max_length];
+                strcpy(sender, p);  // this is the username of the sender
+                p = strtok(NULL, "/");
+                int idP = atoi(p);
+                p = strtok(NULL, "/");
+                char receiver[username_max_length];
+				strcpy(receiver, p);
+                pthread_mutex_lock(&mutex);
+                Invitation newInvitation;
+                strcpy(newInvitation.sender, sender);
+                strcpy(newInvitation.receiver, receiver);
+                newInvitation.idP = idP;
+                allInvitations.invitations[allInvitations.invitation_count] = newInvitation;
+                allInvitations.invitation_count++;
+                pthread_mutex_unlock(&mutex);
+                printf("Invitation from %s to %s on game %i\n", sender, receiver, idP);
+                strcpy(response, "21/Invitation sent");
+                write(sock_conn, response, strlen(response));
+            }
+
    }
     close(sock_conn);
     mysql_close(conn);
     pthread_exit(NULL);
-}
 }
 
 
 int main() {
     my_list.user_count = 0;
     allInbox.inbox_count = 0;
+    allInvitations.invitation_count = 0;
+
     pthread_t tid;
     int sockfd, new_sock;
     struct sockaddr_in server_addr, client_addr;
